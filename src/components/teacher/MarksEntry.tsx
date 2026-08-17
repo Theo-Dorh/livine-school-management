@@ -210,28 +210,28 @@ export const MarksEntry: React.FC<MarksEntryProps> = ({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--brand-primary)' }}>
-            Ghanaian NaCCA Marks & Assessment Sheet
+            Student Marks & Grading
           </h2>
           <p style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem' }}>
-            Continuous Assessment (SBA 50% = Test 1 + Test 2 + Project + Homework) + End of Term Exam (50%) = Total (100%)
+            Class Assessment (50%) + Final Exam (50%) • Grades calculated automatically
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: '0.65rem' }}>
           <button
             onClick={handleAutoFill}
-            className="btn btn-secondary"
-            title="Auto-fill sample realistic grades"
+            className="btn btn-secondary btn-sm"
+            title="Auto-fill sample marks"
           >
-            <Sparkles size={16} />
-            <span>Auto-fill Sample Marks</span>
+            <Sparkles size={15} />
+            <span>Fill Sample Marks</span>
           </button>
           <button
             onClick={handleSaveMarks}
-            className="btn btn-gold"
+            className="btn btn-gold btn-sm"
           >
-            <Save size={16} />
-            <span>Save All Class Marks</span>
+            <Save size={15} />
+            <span>Save Marks</span>
           </button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { UserRole } from '../../types';
 import { SCHOOL_INFO } from '../../data/mockData';
 import {
@@ -15,8 +15,6 @@ import {
   Layers,
   ShieldAlert,
   School,
-  ChevronLeft,
-  ChevronRight,
   Pin
 } from 'lucide-react';
 
@@ -47,33 +45,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
     switch (currentRole) {
       case 'proprietor':
         return [
-          { id: 'dashboard', label: 'Executive Overview', icon: LayoutDashboard },
-          { id: 'people', label: 'People & Staffing', icon: Users },
-          { id: 'academics', label: 'Academics & Content', icon: BookOpen },
-          { id: 'finance', label: 'Finance & Accounts', icon: Banknote },
-          { id: 'governance', label: 'Governance & Safety', icon: ShieldAlert, badge: unreadComplaintsCount }
+          { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+          { id: 'people', label: 'Students & Staff', icon: Users },
+          { id: 'academics', label: 'Academics', icon: BookOpen },
+          { id: 'finance', label: 'Fees & Accounts', icon: Banknote },
+          { id: 'governance', label: 'Suggestions & Reports', icon: ShieldAlert, badge: unreadComplaintsCount }
         ];
       case 'teacher':
         return [
-          { id: 'dashboard', label: 'Teacher Overview', icon: LayoutDashboard },
-          { id: 'marks', label: 'Marks & Assessment', icon: PenTool },
-          { id: 'content', label: 'Scheme of Learning', icon: BookOpen },
-          { id: 'attendance', label: 'Daily Roll Call', icon: CalendarCheck },
-          { id: 'complaint', label: 'Whistleblower Box', icon: MessageSquareWarning }
+          { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+          { id: 'marks', label: 'Enter Marks', icon: PenTool },
+          { id: 'content', label: 'Lesson Notes', icon: BookOpen },
+          { id: 'attendance', label: 'Attendance', icon: CalendarCheck },
+          { id: 'complaint', label: 'Suggestions Box', icon: MessageSquareWarning }
         ];
       case 'parent':
         return [
-          { id: 'dashboard', label: 'Family Overview', icon: LayoutDashboard },
-          { id: 'terminal_report', label: 'Terminal Report Card', icon: FileSpreadsheet },
-          { id: 'fee_payment', label: 'Fees Statement & MoMo', icon: CreditCard },
-          { id: 'curriculum', label: 'Curriculum & Homework', icon: Layers }
+          { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+          { id: 'terminal_report', label: 'Report Card', icon: FileSpreadsheet },
+          { id: 'fee_payment', label: 'Pay Fees', icon: CreditCard },
+          { id: 'curriculum', label: 'Homework & Notes', icon: Layers }
         ];
       case 'student':
         return [
-          { id: 'dashboard', label: 'Student Dashboard', icon: LayoutDashboard },
-          { id: 'results', label: 'My Scores & Grades', icon: GraduationCap },
-          { id: 'materials', label: 'Lesson Notes & Tasks', icon: BookOpen },
-          { id: 'complaint', label: 'Safe-Report Box', icon: MessageSquareWarning }
+          { id: 'dashboard', label: 'My Dashboard', icon: LayoutDashboard },
+          { id: 'results', label: 'My Grades', icon: GraduationCap },
+          { id: 'materials', label: 'Homework & Notes', icon: BookOpen },
+          { id: 'complaint', label: 'Suggestions & Help', icon: MessageSquareWarning }
         ];
       default:
         return [];
@@ -91,13 +89,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Top Brand Anchor: Livine International School */}
       <div className="sidebar-brand-container">
         <div className="school-logo-crest">
-          <School size={24} />
+          <School size={22} />
         </div>
 
         {isExpanded && (
           <div className="school-brand-text">
             <h1 title={SCHOOL_INFO.name}>{SCHOOL_INFO.name}</h1>
-            <p>Accra • NaCCA / GES</p>
+            <p>East Legon, Accra</p>
           </div>
         )}
       </div>
@@ -105,9 +103,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Role / Portal Indicator */}
       {isExpanded && (
         <div className="sidebar-role-indicator">
-          <div className="role-subtext">Active Navigation Portal</div>
+          <div className="role-subtext">Active Portal</div>
           <div className="role-title">
-            {currentRole === 'proprietor' ? 'Proprietor Command' : `${currentRole} Portal`}
+            {currentRole === 'proprietor' ? 'Admin Portal' : `${currentRole.charAt(0).toUpperCase() + currentRole.slice(1)} Portal`}
           </div>
         </div>
       )}
@@ -125,7 +123,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title={!isExpanded ? item.label : undefined}
             >
               <div className="icon-wrapper">
-                <Icon size={20} />
+                <Icon size={19} />
                 {item.badge !== undefined && item.badge > 0 && !isExpanded && (
                   <span className="dot-badge" />
                 )}
@@ -153,11 +151,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
           {isExpanded ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Pin size={15} style={{ transform: isPinned ? 'rotate(45deg)' : 'none' }} />
-              <span style={{ fontSize: '0.75rem' }}>{isPinned ? 'Sidebar Pinned' : 'Hover Expand Mode'}</span>
+              <Pin size={14} style={{ transform: isPinned ? 'rotate(45deg)' : 'none' }} />
+              <span style={{ fontSize: '0.75rem' }}>{isPinned ? 'Pinned' : 'Auto-collapse'}</span>
             </div>
           ) : (
-            <Pin size={15} />
+            <Pin size={14} />
           )}
         </button>
       </div>

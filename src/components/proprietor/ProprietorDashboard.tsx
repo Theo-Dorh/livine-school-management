@@ -99,49 +99,49 @@ export const ProprietorDashboard: React.FC<ProprietorDashboardProps> = ({
         style={{
           background: 'linear-gradient(135deg, #0F2537 0%, #15324A 50%, #1D4163 100%)',
           borderRadius: 'var(--radius-xl)',
-          padding: '2rem 2.25rem',
+          padding: '1.75rem 2rem',
           color: '#FFFFFF',
           boxShadow: '0 10px 25px -5px rgba(15, 37, 55, 0.3)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexWrap: 'wrap',
-          gap: '1.5rem',
+          gap: '1.25rem',
           position: 'relative',
           overflow: 'hidden'
         }}
       >
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.6rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem' }}>
             <span 
               style={{ 
                 background: 'rgba(200, 135, 25, 0.22)', 
                 color: '#FDE68A', 
                 border: '1px solid rgba(200, 135, 25, 0.45)', 
-                padding: '0.25rem 0.75rem', 
+                padding: '0.2rem 0.65rem', 
                 borderRadius: 'var(--radius-full)', 
                 fontSize: '0.725rem', 
-                fontWeight: 800, 
-                letterSpacing: '0.04em',
+                fontWeight: 700, 
+                letterSpacing: '0.03em',
                 textTransform: 'uppercase' 
               }}
             >
-              Proprietor Command Center
+              School Administration
             </span>
             <span style={{ color: 'rgba(255, 255, 255, 0.75)', fontSize: '0.8rem', fontWeight: 600 }}>
-              Academic Year 2025/2026 • {activeTerm}
+              {activeTerm} (2025/2026)
             </span>
           </div>
 
-          <h2 style={{ fontSize: '1.85rem', color: '#FFFFFF', fontWeight: 900, letterSpacing: '-0.02em', margin: 0 }}>
-            Executive Operations Overview
+          <h2 style={{ fontSize: '1.65rem', color: '#FFFFFF', fontWeight: 800, letterSpacing: '-0.01em', margin: 0 }}>
+            School Overview
           </h2>
-          <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.875rem', marginTop: '0.35rem', maxWidth: '600px' }}>
-            Livine International School • Ghanaian Standards-Based Basic Education (NaCCA & GES)
+          <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.85rem', marginTop: '0.25rem', maxWidth: '550px' }}>
+            Welcome to Livine International School Management Portal
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
           <button 
             onClick={() => setIsWhatsAppBroadcastOpen(true)}
             className="btn btn-sm"
@@ -149,36 +149,36 @@ export const ProprietorDashboard: React.FC<ProprietorDashboardProps> = ({
               backgroundColor: '#10B981', 
               color: '#FFFFFF', 
               borderRadius: 'var(--radius-full)', 
-              padding: '0.65rem 1.25rem',
-              fontWeight: 800
+              padding: '0.55rem 1.1rem',
+              fontWeight: 700
             }}
           >
-            <MessageCircle size={16} />
-            <span>Parent WhatsApp Broadcast</span>
+            <MessageCircle size={15} />
+            <span>Send WhatsApp Reminder</span>
           </button>
 
           <button 
             onClick={() => onNavigateTab('fees')}
-            className="btn btn-gold"
-            style={{ borderRadius: 'var(--radius-full)', padding: '0.65rem 1.25rem' }}
+            className="btn btn-gold btn-sm"
+            style={{ borderRadius: 'var(--radius-full)', padding: '0.55rem 1.1rem' }}
           >
-            <CreditCard size={16} />
+            <CreditCard size={15} />
             <span>Record Fee Payment</span>
           </button>
           
           <button 
             onClick={() => onNavigateTab('expenses')}
-            className="btn btn-secondary"
+            className="btn btn-secondary btn-sm"
             style={{ 
               backgroundColor: 'rgba(255, 255, 255, 0.12)', 
               color: '#FFF', 
               borderColor: 'rgba(255, 255, 255, 0.25)',
               borderRadius: 'var(--radius-full)',
-              padding: '0.65rem 1.25rem'
+              padding: '0.55rem 1.1rem'
             }}
           >
-            <Receipt size={16} />
-            <span>Record School Expense</span>
+            <Receipt size={15} />
+            <span>Record Expense</span>
           </button>
         </div>
       </div>
@@ -188,14 +188,14 @@ export const ProprietorDashboard: React.FC<ProprietorDashboardProps> = ({
         {/* Total Fee Revenue */}
         <div className="stat-card">
           <div className="stat-icon-wrapper gold">
-            <CreditCard size={22} color="var(--brand-gold)" />
+            <CreditCard size={20} color="var(--brand-gold)" />
           </div>
           <div className="stat-info">
-            <span className="stat-label">Fee Revenue Collected ({activeTerm})</span>
+            <span className="stat-label">Fees Collected ({activeTerm})</span>
             <div className="stat-value">{formatGHS(totalRevenueCollected)}</div>
             <div className="stat-trend positive">
-              <TrendingUp size={13} />
-              <span>{collectionRate}% Collection Rate ({formatGHS(totalExpectedRevenue)} Target)</span>
+              <TrendingUp size={12} />
+              <span>{collectionRate}% Collected of {formatGHS(totalExpectedRevenue)}</span>
             </div>
           </div>
         </div>
@@ -203,16 +203,16 @@ export const ProprietorDashboard: React.FC<ProprietorDashboardProps> = ({
         {/* Outstanding Arrears */}
         <div className="stat-card">
           <div className="stat-icon-wrapper red">
-            <Wallet size={22} color="var(--brand-red)" />
+            <Wallet size={20} color="var(--brand-red)" />
           </div>
           <div className="stat-info">
-            <span className="stat-label">Outstanding Parent Debtors</span>
+            <span className="stat-label">Unpaid Fees (Arrears)</span>
             <div className="stat-value" style={{ color: '#B91C1C' }}>
               {formatGHS(totalOutstandingArrears)}
             </div>
             <div className="stat-trend negative">
-              <AlertTriangle size={13} />
-              <span>Due before End of Term Exams</span>
+              <AlertTriangle size={12} />
+              <span>Outstanding balance</span>
             </div>
           </div>
         </div>
@@ -220,13 +220,13 @@ export const ProprietorDashboard: React.FC<ProprietorDashboardProps> = ({
         {/* Total Enrolled Students */}
         <div className="stat-card">
           <div className="stat-icon-wrapper navy">
-            <GraduationCap size={22} color="var(--brand-primary)" />
+            <GraduationCap size={20} color="var(--brand-primary)" />
           </div>
           <div className="stat-info">
-            <span className="stat-label">Pupils Enrolled (Full Capacity)</span>
-            <div className="stat-value">{students.length} Pupils</div>
+            <span className="stat-label">Total Students</span>
+            <div className="stat-value">{students.length} Students</div>
             <div className="stat-trend neutral">
-              <span>Nursery 1 to JHS 3 • 4 School Houses</span>
+              <span>Nursery 1 to JHS 3</span>
             </div>
           </div>
         </div>
@@ -234,14 +234,14 @@ export const ProprietorDashboard: React.FC<ProprietorDashboardProps> = ({
         {/* Teaching Faculty & Staff */}
         <div className="stat-card">
           <div className="stat-icon-wrapper emerald">
-            <Users size={22} color="var(--brand-emerald)" />
+            <Users size={20} color="var(--brand-emerald)" />
           </div>
           <div className="stat-info">
-            <span className="stat-label">Teaching Staff & Faculty</span>
-            <div className="stat-value">{teachers.length} Educators</div>
+            <span className="stat-label">Teachers & Staff</span>
+            <div className="stat-value">{teachers.length} Teachers</div>
             <div className="stat-trend positive">
-              <CheckCircle2 size={13} />
-              <span>100% GES / NTC Certified</span>
+              <CheckCircle2 size={12} />
+              <span>All Active</span>
             </div>
           </div>
         </div>

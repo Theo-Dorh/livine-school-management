@@ -7,12 +7,11 @@ import {
   Users, 
   UserCheck, 
   Calendar,
-  Sparkles,
   MapPin,
   ChevronDown,
   Check,
   LogOut,
-  User
+  Sparkles
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -39,17 +38,17 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isTermDropdownOpen, setIsTermDropdownOpen] = useState(false);
   const termDropdownRef = useRef<HTMLDivElement>(null);
 
-  const roles: { role: UserRole; label: string; icon: React.ReactNode; shortLabel: string }[] = [
-    { role: 'proprietor', label: 'Proprietor / Admin', icon: <Building2 size={15} />, shortLabel: 'Admin' },
-    { role: 'teacher', label: 'Teacher Portal', icon: <UserCheck size={15} />, shortLabel: 'Teacher' },
-    { role: 'parent', label: 'Parent Portal', icon: <Users size={15} />, shortLabel: 'Parent' },
-    { role: 'student', label: 'Student Portal', icon: <GraduationCap size={15} />, shortLabel: 'Student' },
+  const roles: { role: UserRole; label: string; icon: React.ReactNode }[] = [
+    { role: 'proprietor', label: 'Admin', icon: <Building2 size={14} /> },
+    { role: 'teacher', label: 'Teacher', icon: <UserCheck size={14} /> },
+    { role: 'parent', label: 'Parent', icon: <Users size={14} /> },
+    { role: 'student', label: 'Student', icon: <GraduationCap size={14} /> },
   ];
 
   const terms: { id: AcademicTerm; label: string; range: string }[] = [
-    { id: 'Term 1', label: 'Term 1', range: 'Sept – Dec 2025' },
-    { id: 'Term 2', label: 'Term 2 (Active)', range: 'Jan – Apr 2026' },
-    { id: 'Term 3', label: 'Term 3', range: 'May – Jul 2026' },
+    { id: 'Term 1', label: 'Term 1', range: 'Sept – Dec' },
+    { id: 'Term 2', label: 'Term 2 (Active)', range: 'Jan – Apr' },
+    { id: 'Term 3', label: 'Term 3', range: 'May – Jul' },
   ];
 
   // Close dropdown on outside click
@@ -65,48 +64,38 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   // Display name for active logged-in entity
   const getActiveUserName = () => {
-    if (currentRole === 'proprietor') return 'Rev. Dr. E. K. Livine (Proprietor)';
-    if (currentRole === 'teacher') return currentTeacher?.fullName || 'Teacher Faculty';
-    if (currentRole === 'parent') return currentParent?.fullName || 'Parent Account';
-    if (currentRole === 'student') return currentStudent?.fullName || 'Student Account';
-    return 'User Account';
+    if (currentRole === 'proprietor') return 'Admin (Proprietor)';
+    if (currentRole === 'teacher') return currentTeacher?.fullName || 'Teacher';
+    if (currentRole === 'parent') return currentParent?.fullName || 'Parent';
+    if (currentRole === 'student') return currentStudent?.fullName || 'Student';
+    return 'User';
   };
 
   return (
-    <header className="top-header no-print">
-      {/* Left side: Curriculum & Location Pills */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <span 
-            className="badge badge-gold" 
-            style={{ 
-              fontSize: '0.75rem', 
-              fontWeight: 800, 
-              padding: '0.35rem 0.85rem', 
-              borderRadius: 'var(--radius-full)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              backgroundColor: '#FEF3C7',
-              color: '#92400E',
-              border: '1px solid #FDE68A'
-            }}
-          >
-            <Sparkles size={13} color="#D97706" />
-            <span>NaCCA / GES Standards-Based Curriculum</span>
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem', color: '#64748B', backgroundColor: '#F8FAFC', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-full)', border: '1px solid #E2E8F0' }}>
-          <MapPin size={12} color="#C88719" />
-          <span>Accra Campus</span>
-          <span style={{ color: '#CBD5E1' }}>•</span>
-          <span style={{ color: '#0F2537', fontWeight: 700 }}>GA-492-3810</span>
+    <header className="top-header no-print" style={{ paddingTop: '0.65rem', paddingBottom: '0.65rem' }}>
+      {/* Left side: School Campus Location badge with ample margin */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.2rem', marginBottom: '0.2rem' }}>
+        <div 
+          style={{ 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            gap: '0.45rem', 
+            fontSize: '0.775rem', 
+            color: '#475569', 
+            backgroundColor: '#F8FAFC', 
+            padding: '0.4rem 0.85rem', 
+            borderRadius: 'var(--radius-full)', 
+            border: '1px solid #E2E8F0',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
+          }}
+        >
+          <MapPin size={13} color="#C88719" />
+          <span style={{ fontWeight: 600 }}>East Legon Campus, Accra</span>
         </div>
       </div>
 
       {/* Right side: Academic Term Selector, Role Switcher & User Profile Logout */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginTop: '0.2rem', marginBottom: '0.2rem' }}>
         {/* Custom Academic Term Dropdown */}
         <div ref={termDropdownRef} style={{ position: 'relative' }}>
           <button
@@ -117,7 +106,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               alignItems: 'center',
               gap: '0.5rem',
               backgroundColor: '#FFFFFF',
-              padding: '0.35rem 0.85rem',
+              padding: '0.4rem 0.85rem',
               borderRadius: 'var(--radius-full)',
               border: '1px solid #CBD5E1',
               cursor: 'pointer',
@@ -125,18 +114,18 @@ export const Navbar: React.FC<NavbarProps> = ({
               transition: 'all 0.15s ease'
             }}
           >
-            <div style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Calendar size={12} color="#B45309" />
+            <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Calendar size={11} color="#B45309" />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
-              <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1 }}>
-                Academic Term
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <span style={{ fontSize: '0.775rem', fontWeight: 800, color: '#0F2537' }}>
+                {activeTerm}
               </span>
-              <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0F2537', lineHeight: 1.2 }}>
-                {activeTerm} (2025/2026)
+              <span style={{ fontSize: '0.7rem', color: '#64748B' }}>
+                (2025/2026)
               </span>
             </div>
-            <ChevronDown size={14} color="#64748B" style={{ transform: isTermDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease', marginLeft: '0.2rem' }} />
+            <ChevronDown size={13} color="#64748B" style={{ transform: isTermDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
           </button>
 
           {/* Sleek Dribbble-style Dropdown Menu */}
@@ -146,18 +135,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                 position: 'absolute',
                 top: 'calc(100% + 6px)',
                 right: 0,
-                width: '230px',
+                width: '200px',
                 backgroundColor: '#FFFFFF',
                 borderRadius: 'var(--radius-lg)',
                 boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.08)',
                 border: '1px solid #E2E8F0',
-                padding: '0.4rem',
+                padding: '0.35rem',
                 zIndex: 100,
                 animation: 'fadeIn 0.15s ease-out'
               }}
             >
-              <div style={{ padding: '0.4rem 0.6rem 0.3rem', fontSize: '0.675rem', fontWeight: 800, textTransform: 'uppercase', color: '#94A3B8', letterSpacing: '0.05em' }}>
-                Select Trimester Term
+              <div style={{ padding: '0.35rem 0.5rem 0.25rem', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: '#94A3B8', letterSpacing: '0.05em' }}>
+                Select School Term
               </div>
               {terms.map((t) => {
                 const isSelected = activeTerm === t.id;
@@ -174,7 +163,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      padding: '0.6rem 0.75rem',
+                      padding: '0.5rem 0.65rem',
                       borderRadius: 'var(--radius-md)',
                       border: 'none',
                       backgroundColor: isSelected ? '#EFF6FF' : 'transparent',
@@ -191,10 +180,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                     }}
                   >
                     <div>
-                      <div style={{ fontSize: '0.825rem', fontWeight: 800 }}>{t.label}</div>
-                      <div style={{ fontSize: '0.725rem', color: isSelected ? '#3B82F6' : '#64748B' }}>{t.range}</div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>{t.label}</div>
+                      <div style={{ fontSize: '0.7rem', color: isSelected ? '#3B82F6' : '#64748B' }}>{t.range}</div>
                     </div>
-                    {isSelected && <Check size={16} color="#1D4ED8" />}
+                    {isSelected && <Check size={15} color="#1D4ED8" />}
                   </button>
                 );
               })}
@@ -218,27 +207,22 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* User Session Profile & Logout */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', borderLeft: '1px solid #E2E8F0', paddingLeft: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', borderLeft: '1px solid #E2E8F0', paddingLeft: '0.85rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#0F2537', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 800 }}>
+            <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#0F2537', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.725rem', fontWeight: 800 }}>
               {getActiveUserName().split(' ').map(n => n[0]).slice(0, 2).join('')}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0F2537', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {getActiveUserName()}
-              </span>
-              <span style={{ fontSize: '0.65rem', color: '#15803D', fontWeight: 700 }}>
-                ● Online
-              </span>
-            </div>
+            <span style={{ fontSize: '0.775rem', fontWeight: 700, color: '#0F2537', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {getActiveUserName()}
+            </span>
           </div>
 
           {onLogout && (
             <button
               onClick={onLogout}
               className="btn btn-secondary btn-sm"
-              title="Sign Out / Switch Profile"
-              style={{ padding: '0.35rem 0.6rem', borderRadius: 'var(--radius-full)', marginLeft: '0.2rem' }}
+              title="Sign Out"
+              style={{ padding: '0.35rem 0.6rem', borderRadius: 'var(--radius-full)' }}
             >
               <LogOut size={13} />
               <span>Logout</span>
