@@ -159,11 +159,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <School size={30} />
           </div>
 
-          <h1 style={{ fontSize: '1.35rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.02em', margin: 0 }}>
+          <h1 style={{ fontSize: '1.35rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>
             {SCHOOL_INFO.name}
           </h1>
           <p style={{ fontSize: '0.75rem', color: '#FDE68A', fontWeight: 700, marginTop: '0.2rem' }}>
-            NaCCA & GES Standards-Based School Portal
+            School Management Portal
           </p>
           <div style={{ fontSize: '0.7rem', color: 'rgba(255, 255, 255, 0.65)', marginTop: '0.15rem' }}>
             {SCHOOL_INFO.campus} • Digital: {SCHOOL_INFO.digitalAddress}
@@ -171,16 +171,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         </div>
 
         {/* Role Selector Tabs */}
-        <div style={{ padding: '1.5rem 2rem 0.5rem' }}>
+        <div style={{ padding: '1.25rem 1.25rem 0.5rem' }}>
           <div
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: '0.35rem',
+              gap: '0.25rem',
               backgroundColor: '#F1F5F9',
-              padding: '0.3rem',
+              padding: '0.25rem',
               borderRadius: 'var(--radius-full)',
-              marginBottom: '1.5rem',
+              marginBottom: '1.25rem',
             }}
           >
             <button
@@ -228,15 +228,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label className="form-label">
-                {selectedRole === 'parent' && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                    <Phone size={13} color="#10B981" />
-                    <span>Parent Phone / WhatsApp Number (or Email) *</span>
-                  </span>
-                )}
+                {selectedRole === 'parent' && 'Parent Phone / WhatsApp (or Email) *'}
                 {selectedRole === 'proprietor' && 'Administrator Email / Username *'}
                 {selectedRole === 'teacher' && 'Staff ID / Educator Email *'}
-                {selectedRole === 'student' && 'Student ID (e.g. LIS-2026-001) *'}
+                {selectedRole === 'student' && 'Student ID *'}
               </label>
               <input
                 type="text"
@@ -248,24 +243,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               />
               {selectedRole === 'parent' && (
                 <div style={{ fontSize: '0.7rem', color: '#64748B', marginTop: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  <MessageCircle size={12} color="#10B981" />
-                  <span>No email required! Sign in using your registered mobile number.</span>
+                  <Sparkles size={11} color="#10B981" />
+                  <span>No email needed! Ghanaian mobile format: 024..., +233 24...</span>
                 </div>
               )}
             </div>
 
             <div className="form-group">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                <label className="form-label" style={{ margin: 0 }}>Password / Security PIN *</label>
-                <span style={{ fontSize: '0.7rem', color: '#C88719', fontWeight: 700, cursor: 'pointer' }}>
-                  Forgot PIN?
-                </span>
-              </div>
+              <label className="form-label">Password *</label>
               <input
                 type="password"
                 className="form-input"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter password"
                 required
               />
             </div>
@@ -273,21 +264,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <button
               type="submit"
               className="btn btn-gold btn-lg"
-              style={{ width: '100%', marginTop: '1rem', borderRadius: 'var(--radius-md)' }}
+              style={{ width: '100%', marginTop: '0.75rem', borderRadius: 'var(--radius-md)' }}
             >
               <KeyRound size={16} />
-              <span>Access {selectedRole.toUpperCase()} Dashboard</span>
+              <span>Sign In</span>
               <ArrowRight size={16} />
             </button>
           </form>
 
           {/* Quick Demo One-Click Access Badges */}
-          <div style={{ marginTop: '1.75rem', borderTop: '1px solid #E2E8F0', paddingTop: '1.25rem' }}>
+          <div style={{ marginTop: '1.5rem', borderTop: '1px solid #E2E8F0', paddingTop: '1.15rem' }}>
             <div style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.05em', marginBottom: '0.6rem', textAlign: 'center' }}>
               ⚡ Instant 1-Click Demo Logins
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.45rem' }}>
               <button
                 type="button"
                 onClick={() => handleQuickDemoLogin('parent', parents[0])}

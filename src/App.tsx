@@ -57,9 +57,10 @@ export function App() {
   const [activeCategory, setActiveCategory] = useState<string>('dashboard');
   const [activeTerm, setActiveTerm] = useState<AcademicTerm>(SchoolStore.getActiveTerm());
 
-  // Sidebar Collapsible / Hover / Pin State
+  // Sidebar Collapsible / Hover / Pin & Mobile Drawer State
   const [isSidebarHovered, setIsSidebarHovered] = useState<boolean>(false);
   const [isSidebarPinned, setIsSidebarPinned] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   // Loaded Data from Store
   const [classes, setClasses] = useState<ClassRoom[]>(SchoolStore.getClasses());
@@ -182,7 +183,7 @@ export function App() {
       {/* Toast Notification Container */}
       <ToastContainer />
 
-      {/* Collapsible & Hover-Expandable Sidebar with Livine International School at Top */}
+      {/* Collapsible & Hover-Expandable Sidebar with Mobile Drawer Support */}
       <Sidebar
         currentRole={currentRole}
         activeCategory={activeCategory}
@@ -192,6 +193,8 @@ export function App() {
         setIsHovered={setIsSidebarHovered}
         isPinned={isSidebarPinned}
         setIsPinned={setIsSidebarPinned}
+        isMobileOpen={isMobileMenuOpen}
+        onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
 
       {/* Main Content Area */}
@@ -206,6 +209,7 @@ export function App() {
           currentParent={currentParent}
           currentStudent={currentStudent}
           onLogout={handleLogout}
+          onToggleMobileMenu={() => setIsMobileMenuOpen(prev => !prev)}
         />
 
         {/* Dynamic Content Workspace */}
