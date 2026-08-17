@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Student,
   Teacher,
@@ -11,6 +11,7 @@ import {
 } from '../../types';
 import { formatGHS } from '../../utils/currency';
 import { StatusBadge } from '../common/Badge';
+import { WhatsAppReminderModal } from '../common/WhatsAppReminderModal';
 import {
   CreditCard,
   Banknote,
@@ -27,7 +28,8 @@ import {
   ChevronRight,
   Building,
   School,
-  Wallet
+  Wallet,
+  MessageCircle
 } from 'lucide-react';
 
 interface ProprietorDashboardProps {
@@ -53,11 +55,14 @@ export const ProprietorDashboard: React.FC<ProprietorDashboardProps> = ({
   activeTerm,
   onNavigateTab
 }) => {
-  // Financial calculations
-  const totalCollected = feePayments.reduce((acc, p) => acc + p.amountPaid, 0);
+  const [isWhatsAppBroadcastOpen, setIsWhatsAppBroadcastOpen] = useState(false);
 
-  // Total billed based on fee structures per class level
-  const totalBilledEstimate = students.reduce((sum, stu) => {
+  // Financial Calculations for Active Term
+  const termPayments = feePayments.filter(p => p.term === activeTerm);
+  const totalRevenueCollected = termPayments.reduce((acc, p) => acc + p.amountPaid, 0);
+
+  // Expected Revenue based on approved tariff per class level
+  const totalExpectedRevenue = students.reduce((acc, stu) => {
     let level: FeeStructure['classLevel'] = 'Upper Primary';
     if (stu.className.includes('Nursery')) level = 'Nursery';
     else if (stu.className.includes('KG')) level = 'KG';
@@ -66,48 +71,45 @@ export const ProprietorDashboard: React.FC<ProprietorDashboardProps> = ({
     else if (stu.className.includes('JHS')) level = 'JHS';
 
     const structure = feeStructures.find(f => f.classLevel === level);
-    return sum + (structure ? structure.totalFee : 3000);
+    return acc + (structure ? structure.totalFee : 3000);
   }, 0);
 
-  const totalArrears = Math.max(0, totalBilledEstimate - totalCollected);
-  const totalMonthlyPayroll = payroll.reduce((acc, p) => acc + p.netSalary, 0);
-  const totalMonthlyExpenses = expenses.reduce((acc, e) => acc + e.amount, 0);
-  const totalOutflows = totalMonthlyPayroll + totalMonthlyExpenses;
-  const netOperatingSurplus = totalCollected - totalOutflows;
+  const totalOutstandingArrears = Math.max(0, totalExpectedRevenue - totalRevenueCollected);
+  const collectionRate = totalExpectedRevenue > 0
+    ? Math.round((totalRevenueCollected / totalExpectedRevenue) * 100)
+    : 0;
 
-  // Active complaints
-  const openComplaints = complaints.filter(c => c.status !== 'Resolved' && c.status !== 'Dismissed');
-  const criticalComplaints = complaints.filter(c => c.severity === 'Critical' || c.severity === 'High');
+  // Monthly Payroll (March 2026)
+  const currentMonthPayroll = payroll.filter(p => p.month === 'March 2026' || p.monthYear === 'March 2026');
+  const totalMonthlyPayroll = currentMonthPayroll.reduce((acc, p) => acc + p.netSalary, 0);
+  const totalSsnitRemittance = currentMonthPayroll.reduce((acc, p) => acc + p.ssnitEmployee + p.ssnitEmployer, 0);
+  const totalGraTax = currentMonthPayroll.reduce((acc, p) => acc + p.graPayeTax, 0);
 
-  // Class enrollment breakdown
-  const nurseryCount = students.filter(s => s.className.includes('Nursery')).length;
-  const kgCount = students.filter(s => s.className.includes('KG')).length;
-  const lowerPrimaryCount = students.filter(s => ['Basic 1', 'Basic 2', 'Basic 3'].some(b => s.className.includes(b))).length;
-  const upperPrimaryCount = students.filter(s => ['Basic 4', 'Basic 5', 'Basic 6'].some(b => s.className.includes(b))).length;
-  const jhsCount = students.filter(s => s.className.includes('JHS')).length;
+  // Operating Expenses
+  const totalOperatingExpenses = expenses.reduce((acc, e) => acc + e.amount, 0);
+
+  // Unresolved Anonymous Complaints
+  const pendingComplaints = complaints.filter(c => c.status === 'New' || c.status === 'Under Review');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
-      {/* Modern Executive Hero Banner */}
+      {/* Executive Hero Banner */}
       <div 
-        style={{ 
-          background: 'linear-gradient(135deg, #0F2537 0%, #17324B 60%, #1E3E5F 100%)', 
-          borderRadius: 'var(--radius-xl)', 
-          padding: '2rem 2.25rem', 
+        style={{
+          background: 'linear-gradient(135deg, #0F2537 0%, #15324A 50%, #1D4163 100%)',
+          borderRadius: 'var(--radius-xl)',
+          padding: '2rem 2.25rem',
           color: '#FFFFFF',
+          boxShadow: '0 10px 25px -5px rgba(15, 37, 55, 0.3)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          boxShadow: 'var(--shadow-lg)',
           flexWrap: 'wrap',
           gap: '1.5rem',
           position: 'relative',
           overflow: 'hidden'
         }}
       >
-        {/* Subtle decorative glow */}
-        <div style={{ position: 'absolute', right: '-40px', top: '-40px', width: '220px', height: '220px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(200,135,25,0.2) 0%, rgba(200,135,25,0) 70%)', pointerEvents: 'none' }} />
-
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.6rem' }}>
             <span 
@@ -140,6 +142,21 @@ export const ProprietorDashboard: React.FC<ProprietorDashboardProps> = ({
 
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
           <button 
+            onClick={() => setIsWhatsAppBroadcastOpen(true)}
+            className="btn btn-sm"
+            style={{ 
+              backgroundColor: '#10B981', 
+              color: '#FFFFFF', 
+              borderRadius: 'var(--radius-full)', 
+              padding: '0.65rem 1.25rem',
+              fontWeight: 800
+            }}
+          >
+            <MessageCircle size={16} />
+            <span>Parent WhatsApp Broadcast</span>
+          </button>
+
+          <button 
             onClick={() => onNavigateTab('fees')}
             className="btn btn-gold"
             style={{ borderRadius: 'var(--radius-full)', padding: '0.65rem 1.25rem' }}
@@ -147,6 +164,7 @@ export const ProprietorDashboard: React.FC<ProprietorDashboardProps> = ({
             <CreditCard size={16} />
             <span>Record Fee Payment</span>
           </button>
+          
           <button 
             onClick={() => onNavigateTab('expenses')}
             className="btn btn-secondary"
@@ -159,216 +177,247 @@ export const ProprietorDashboard: React.FC<ProprietorDashboardProps> = ({
             }}
           >
             <Receipt size={16} />
-            <span>Add Operating Cost</span>
+            <span>Record School Expense</span>
           </button>
         </div>
       </div>
 
-      {/* Primary Financial & Operational Metrics */}
+      {/* Primary KPI Metric Cards (Dribbble Layout) */}
       <div className="stat-grid">
-        <div className="stat-card green">
-          <div>
-            <div className="stat-label">Term Fees Collected</div>
-            <div className="stat-value">{formatGHS(totalCollected)}</div>
+        {/* Total Fee Revenue */}
+        <div className="stat-card">
+          <div className="stat-icon-wrapper gold">
+            <CreditCard size={22} color="var(--brand-gold)" />
+          </div>
+          <div className="stat-info">
+            <span className="stat-label">Fee Revenue Collected ({activeTerm})</span>
+            <div className="stat-value">{formatGHS(totalRevenueCollected)}</div>
             <div className="stat-trend positive">
-              <TrendingUp size={14} />
-              <span>{Math.round((totalCollected / (totalBilledEstimate || 1)) * 100)}% of total expected billing</span>
+              <TrendingUp size={13} />
+              <span>{collectionRate}% Collection Rate ({formatGHS(totalExpectedRevenue)} Target)</span>
             </div>
-          </div>
-          <div className="stat-icon-wrapper" style={{ backgroundColor: '#DCFCE7', color: '#15803D' }}>
-            <CreditCard size={22} />
           </div>
         </div>
 
-        <div className="stat-card red">
-          <div>
-            <div className="stat-label">Outstanding Fee Arrears</div>
-            <div className="stat-value">{formatGHS(totalArrears)}</div>
+        {/* Outstanding Arrears */}
+        <div className="stat-card">
+          <div className="stat-icon-wrapper red">
+            <Wallet size={22} color="var(--brand-red)" />
+          </div>
+          <div className="stat-info">
+            <span className="stat-label">Outstanding Parent Debtors</span>
+            <div className="stat-value" style={{ color: '#B91C1C' }}>
+              {formatGHS(totalOutstandingArrears)}
+            </div>
             <div className="stat-trend negative">
-              <AlertTriangle size={14} />
-              <span>{students.filter(s => s.status === 'Active').length} enrolled students</span>
+              <AlertTriangle size={13} />
+              <span>Due before End of Term Exams</span>
             </div>
-          </div>
-          <div className="stat-icon-wrapper" style={{ backgroundColor: '#FEE2E2', color: '#B91C1C' }}>
-            <Receipt size={22} />
           </div>
         </div>
 
-        <div className="stat-card navy">
-          <div>
-            <div className="stat-label">Monthly Staff Payroll</div>
-            <div className="stat-value">{formatGHS(totalMonthlyPayroll)}</div>
-            <div className="stat-trend">
-              <Users size={14} />
-              <span>{teachers.length} teaching & administrative staff</span>
-            </div>
+        {/* Total Enrolled Students */}
+        <div className="stat-card">
+          <div className="stat-icon-wrapper navy">
+            <GraduationCap size={22} color="var(--brand-primary)" />
           </div>
-          <div className="stat-icon-wrapper" style={{ backgroundColor: '#EFF6FF', color: '#1D4ED8' }}>
-            <Banknote size={22} />
+          <div className="stat-info">
+            <span className="stat-label">Pupils Enrolled (Full Capacity)</span>
+            <div className="stat-value">{students.length} Pupils</div>
+            <div className="stat-trend neutral">
+              <span>Nursery 1 to JHS 3 • 4 School Houses</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card gold">
-          <div>
-            <div className="stat-label">Operating Expenses (Costs)</div>
-            <div className="stat-value">{formatGHS(totalMonthlyExpenses)}</div>
-            <div className="stat-trend warning">
-              <span>ECG, Water, Bus, Canteen & TLMs</span>
-            </div>
+        {/* Teaching Faculty & Staff */}
+        <div className="stat-card">
+          <div className="stat-icon-wrapper emerald">
+            <Users size={22} color="var(--brand-emerald)" />
           </div>
-          <div className="stat-icon-wrapper" style={{ backgroundColor: '#FEF3C7', color: '#B45309' }}>
-            <Wallet size={22} />
+          <div className="stat-info">
+            <span className="stat-label">Teaching Staff & Faculty</span>
+            <div className="stat-value">{teachers.length} Educators</div>
+            <div className="stat-trend positive">
+              <CheckCircle2 size={13} />
+              <span>100% GES / NTC Certified</span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Grid: Financial Position & Whistleblower Summary */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '1.5rem' }}>
-        {/* Financial Cash Flow Summary */}
+      {/* Operational Highlights & Statutory Compliance Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.5rem' }}>
+        {/* Statutory Payroll & Remittances Summary */}
         <div className="card">
           <div className="card-header">
-            <div>
-              <div className="card-title">
-                <TrendingUp size={18} color="var(--brand-gold)" />
-                <span>Financial Health & Trimester Cash Flow</span>
-              </div>
-              <div className="card-subtitle">Summary of Revenue vs Operating Outflows (GH₵)</div>
+            <div className="card-title">
+              <Banknote size={18} color="var(--brand-primary)" />
+              <span>March 2026 Payroll & Statutory Remittances</span>
             </div>
             <button 
-              onClick={() => onNavigateTab('fees')}
+              onClick={() => onNavigateTab('payroll')}
               className="btn btn-secondary btn-sm"
             >
-              <span>View P&L Ledger</span>
-              <ArrowUpRight size={14} />
+              <span>Manage Payroll</span>
+              <ChevronRight size={14} />
             </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.25rem' }}>
-            <div style={{ backgroundColor: '#F8FAFC', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid #E2E8F0' }}>
-              <div style={{ fontSize: '0.725rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Total Revenue</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#15803D', marginTop: '0.2rem' }}>
-                {formatGHS(totalCollected)}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)' }}>
+              <div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Net Salary Paid to Faculty</div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--brand-primary)' }}>{formatGHS(totalMonthlyPayroll)}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <span className="badge badge-green">Disbursed via GCB / Bank</span>
               </div>
             </div>
 
-            <div style={{ backgroundColor: '#F8FAFC', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid #E2E8F0' }}>
-              <div style={{ fontSize: '0.725rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Total Expenditure</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#B91C1C', marginTop: '0.2rem' }}>
-                {formatGHS(totalOutflows)}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div style={{ padding: '0.75rem', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>SSNIT Tier 1 & 2 (18.5%)</div>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '0.2rem' }}>
+                  {formatGHS(totalSsnitRemittance)}
+                </div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--brand-emerald)', marginTop: '0.1rem' }}>Employer + Employee</div>
+              </div>
+
+              <div style={{ padding: '0.75rem', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>GRA PAYE Withholding</div>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '0.2rem' }}>
+                  {formatGHS(totalGraTax)}
+                </div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', marginTop: '0.1rem' }}>Monthly Tax Return</div>
               </div>
             </div>
-
-            <div style={{ backgroundColor: netOperatingSurplus >= 0 ? '#DCFCE7' : '#FEE2E2', padding: '1rem', borderRadius: 'var(--radius-md)', border: `1px solid ${netOperatingSurplus >= 0 ? '#86EFAC' : '#FCA5A5'}` }}>
-              <div style={{ fontSize: '0.725rem', color: netOperatingSurplus >= 0 ? '#166534' : '#991B1B', fontWeight: 700, textTransform: 'uppercase' }}>Net Operational Surplus</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: netOperatingSurplus >= 0 ? '#15803D' : '#B91C1C', marginTop: '0.2rem' }}>
-                {formatGHS(netOperatingSurplus)}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', backgroundColor: '#F1F5F9', padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)' }}>
-            <strong>Proprietor Note:</strong> Staff SSNIT (5.5% employee, 13.5% employer) and GRA PAYE remittances for March 2026 are fully computed in accordance with Ghanaian statutory law.
           </div>
         </div>
 
-        {/* Whistleblower & Grievance Alert Box */}
+        {/* Whistleblower & Safe-School Governance */}
         <div className="card">
           <div className="card-header">
-            <div>
-              <div className="card-title">
-                <ShieldAlert size={18} color="#B91C1C" />
-                <span>Whistleblower Inbox</span>
-              </div>
-              <div className="card-subtitle">Anonymous Student & Teacher reports</div>
+            <div className="card-title">
+              <ShieldAlert size={18} color="var(--brand-red)" />
+              <span>Safe-School Whistleblower Grievance Desk</span>
             </div>
             <button 
               onClick={() => onNavigateTab('complaints')}
               className="btn btn-secondary btn-sm"
             >
-              <span>View All</span>
-              <ArrowUpRight size={14} />
+              <span>View All Cases</span>
+              <ChevronRight size={14} />
             </button>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {complaints.slice(0, 2).map((c) => (
-              <div 
-                key={c.id}
-                style={{ 
-                  backgroundColor: 'var(--bg-subtle)', 
-                  padding: '0.85rem 1rem', 
-                  borderRadius: 'var(--radius-md)', 
-                  border: '1px solid var(--border-light)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  gap: '0.75rem'
-                }}
-              >
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                    <span style={{ fontWeight: 700, fontSize: '0.8rem', color: c.senderType === 'Student' ? '#1D4ED8' : '#7C3AED' }}>
-                      [{c.senderType}] {c.targetCategory.split(' ')[0]}
-                    </span>
-                    <span className={`badge ${c.status === 'Resolved' ? 'badge-green' : c.status === 'Under Investigation' ? 'badge-gold' : 'badge-red'}`} style={{ fontSize: '0.7rem' }}>
-                      {c.status}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    {c.subject}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.2rem' }}>
-                    Logged: {c.createdAt}
-                  </div>
-                </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                Confidential Reports Requiring Proprietor Oversight:
+              </span>
+              <span className={`badge ${pendingComplaints.length > 0 ? 'badge-red' : 'badge-green'}`}>
+                {pendingComplaints.length} Pending Actions
+              </span>
+            </div>
+
+            {pendingComplaints.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>
+                <CheckCircle2 size={32} color="var(--brand-emerald)" style={{ margin: '0 auto 0.5rem' }} />
+                <div>All grievance reports have been investigated and resolved!</div>
               </div>
-            ))}
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {pendingComplaints.slice(0, 3).map(c => (
+                  <div 
+                    key={c.id}
+                    style={{ 
+                      padding: '0.75rem', 
+                      backgroundColor: '#FEF2F2', 
+                      borderRadius: 'var(--radius-md)', 
+                      border: '1px solid #FEE2E2',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#991B1B' }}>{c.subject}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#B91C1C' }}>
+                        Ref: {c.trackingCode || c.ticketNumber} • {c.targetCategory}
+                      </div>
+                    </div>
+                    <StatusBadge status={c.severity} />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Enrollment Distribution (Nursery to JHS 3) */}
+      {/* Recent Fee Transactions Feed */}
       <div className="card">
         <div className="card-header">
           <div className="card-title">
-            <GraduationCap size={18} color="var(--brand-primary)" />
-            <span>Ghana Basic Education Enrollment Distribution</span>
+            <Receipt size={18} color="var(--brand-primary)" />
+            <span>Recent Official Fee Payments & MoMo Deposits</span>
           </div>
-          <span className="badge badge-gold">{students.length} Total Enrolled Pupils</span>
+          <button 
+            onClick={() => onNavigateTab('fees')}
+            className="btn btn-secondary btn-sm"
+          >
+            <span>Full Fee Ledger</span>
+            <ChevronRight size={14} />
+          </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
-          <div style={{ backgroundColor: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Nursery 1 & 2</div>
-            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--brand-primary)', margin: '0.25rem 0' }}>{nurseryCount}</div>
-            <div style={{ fontSize: '0.75rem', color: '#15803D' }}>Early Childhood</div>
-          </div>
-
-          <div style={{ backgroundColor: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>KG 1 & 2</div>
-            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--brand-primary)', margin: '0.25rem 0' }}>{kgCount}</div>
-            <div style={{ fontSize: '0.75rem', color: '#15803D' }}>Kindergarten</div>
-          </div>
-
-          <div style={{ backgroundColor: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Lower Primary (B1-B3)</div>
-            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--brand-primary)', margin: '0.25rem 0' }}>{lowerPrimaryCount}</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--brand-gold-dark)' }}>Primary Foundational</div>
-          </div>
-
-          <div style={{ backgroundColor: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Upper Primary (B4-B6)</div>
-            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--brand-primary)', margin: '0.25rem 0' }}>{upperPrimaryCount}</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--brand-gold-dark)' }}>Primary Intermediate</div>
-          </div>
-
-          <div style={{ backgroundColor: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>JHS 1 - 3 (Basic 7-9)</div>
-            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--brand-primary)', margin: '0.25rem 0' }}>{jhsCount}</div>
-            <div style={{ fontSize: '0.75rem', color: '#1D4ED8' }}>BECE Candidates</div>
-          </div>
+        <div className="table-container">
+          <table className="custom-table">
+            <thead>
+              <tr>
+                <th>Receipt No</th>
+                <th>Student</th>
+                <th>Class</th>
+                <th>Channel / Method</th>
+                <th>Amount Paid</th>
+                <th>Date & Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {termPayments.slice(0, 5).map((pay) => (
+                <tr key={pay.id}>
+                  <td style={{ fontWeight: 700, color: 'var(--brand-primary)' }}>
+                    {pay.receiptNumber || pay.receiptNo}
+                  </td>
+                  <td style={{ fontWeight: 600 }}>{pay.studentName}</td>
+                  <td><span className="badge badge-gray">{pay.className}</span></td>
+                  <td>{pay.paymentMethod}</td>
+                  <td style={{ fontWeight: 700, color: 'var(--brand-emerald)' }}>
+                    {formatGHS(pay.amountPaid)}
+                  </td>
+                  <td style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                    {pay.paymentDate || pay.date}
+                  </td>
+                  <td><StatusBadge status={pay.status || 'Completed'} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
+
+      {/* WhatsApp Broadcast Modal */}
+      <WhatsAppReminderModal
+        isOpen={isWhatsAppBroadcastOpen}
+        onClose={() => setIsWhatsAppBroadcastOpen(false)}
+        activeTerm={activeTerm}
+        allStudents={students}
+        allFeePayments={feePayments}
+        allFeeStructures={feeStructures}
+        mode="broadcast"
+      />
     </div>
   );
 };

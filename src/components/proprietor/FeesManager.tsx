@@ -10,6 +10,7 @@ import { formatGHS } from '../../utils/currency';
 import { StatusBadge } from '../common/Badge';
 import { Modal } from '../common/Modal';
 import { FeeReceiptModal } from './FeeReceiptModal';
+import { WhatsAppReminderModal } from '../common/WhatsAppReminderModal';
 import { exportDebtorsToCSV } from '../../utils/export';
 import { toast } from '../common/Toast';
 import { SchoolStore } from '../../data/storage';
@@ -25,7 +26,9 @@ import {
   School,
   Edit2,
   Trash2,
-  Download
+  Download,
+  MessageCircle,
+  Send
 } from 'lucide-react';
 
 interface FeesManagerProps {
@@ -59,6 +62,12 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
 
   // Printable Receipt Modal State
   const [activeReceipt, setActiveReceipt] = useState<FeePayment | null>(null);
+
+  // WhatsApp Reminder Modal State
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
+  const [whatsAppTargetStudent, setWhatsAppTargetStudent] = useState<Student | null>(null);
+  const [whatsAppFeeDetails, setWhatsAppFeeDetails] = useState<{ totalBilled: number; totalPaid: number; arrears: number } | null>(null);
+  const [whatsAppBroadcastMode, setWhatsAppBroadcastMode] = useState<'single' | 'broadcast'>('single');
 
   // Helper to determine fee for student
   const getStudentFeeDetails = (student: Student) => {
@@ -167,6 +176,24 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
     }
   };
 
+  const handleOpenWhatsAppForStudent = (student: Student) => {
+    const details = getStudentFeeDetails(student);
+    setWhatsAppTargetStudent(student);
+    setWhatsAppFeeDetails({
+      totalBilled: details.totalBilled,
+      totalPaid: details.totalPaid,
+      arrears: details.arrears
+    });
+    setWhatsAppBroadcastMode('single');
+    setIsWhatsAppModalOpen(true);
+  };
+
+  const handleOpenWhatsAppBroadcast = () => {
+    setWhatsAppTargetStudent(null);
+    setWhatsAppBroadcastMode('broadcast');
+    setIsWhatsAppModalOpen(true);
+  };
+
   const filteredStudents = students.filter(stu => {
     const matchesSearch = stu.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           stu.studentId.toLowerCase().includes(searchTerm.toLowerCase());
@@ -178,7 +205,7 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       {/* Official Tariff Schedule Cards */}
       <div className="card">
-        <div className="card-header">
+        <div className="card-header" style={{ flexWrap: 'wrap', gap: '0.75rem' }}>
           <div>
             <div className="card-title">
               <CreditCard size={18} color="var(--brand-primary)" />
@@ -188,6 +215,15 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
               Mandatory Breakdown: Tuition, Canteen/Feeding, Facility Levy, TLMs & PTA Dues (GH₵)
             </div>
           </div>
+
+          <button
+            onClick={handleOpenWhatsAppBroadcast}
+            className="btn btn-sm"
+            style={{ backgroundColor: '#10B981', color: '#FFFFFF', fontWeight: 800 }}
+          >
+            <MessageCircle size={15} />
+            <span>Broadcast WhatsApp Reminders</span>
+          </button>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
@@ -291,7 +327,9 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
                     </td>
                     <td>
                       <div style={{ fontWeight: 600 }}>{stu.fullName}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Parent: {stu.parentName}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                        📱 {stu.parentPhone} • {stu.parentName}
+                      </div>
                     </td>
                     <td>
                       <span className="badge badge-gray">{stu.className}</span>
@@ -314,6 +352,20 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
                           <PlusCircle size={13} />
                           <span>Record Fee</span>
                         </button>
+
+                        {/* WhatsApp Direct Reminder Button */}
+                        {fee.arrears > 0 && (
+                          <button
+                            onClick={() => handleOpenWhatsAppForStudent(stu)}
+                            className="btn btn-sm"
+                            style={{ backgroundColor: '#10B981', color: '#FFFFFF' }}
+                            title={`Send WhatsApp Fee Reminder to ${stu.parentPhone}`}
+                          >
+                            <MessageCircle size={13} />
+                            <span>WhatsApp</span>
+                          </button>
+                        )}
+
                         {fee.payments.length > 0 && (
                           <>
                             <button
@@ -455,6 +507,19 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
         isOpen={Boolean(activeReceipt)}
         onClose={() => setActiveReceipt(null)}
         payment={activeReceipt}
+      />
+
+      {/* WhatsApp Reminder & Broadcast Modal */}
+      <WhatsAppReminderModal
+        isOpen={isWhatsAppModalOpen}
+        onClose={() => setIsWhatsAppModalOpen(false)}
+        student={whatsAppTargetStudent}
+        feeDetails={whatsAppFeeDetails}
+        activeTerm={activeTerm}
+        allStudents={students}
+        allFeePayments={feePayments}
+        allFeeStructures={feeStructures}
+        mode={whatsAppBroadcastMode}
       />
     </div>
   );

@@ -12,7 +12,9 @@ import {
   ArrowRight,
   Sparkles,
   ShieldCheck,
-  KeyRound
+  KeyRound,
+  Phone,
+  MessageCircle
 } from 'lucide-react';
 
 interface LoginScreenProps {
@@ -28,9 +30,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   parents,
   students
 }) => {
-  const [selectedRole, setSelectedRole] = useState<UserRole>('proprietor');
-  const [identifier, setIdentifier] = useState('admin@livine.edu.gh');
-  const [password, setPassword] = useState('admin123');
+  const [selectedRole, setSelectedRole] = useState<UserRole>('parent');
+  const [identifier, setIdentifier] = useState('0244987654');
+  const [password, setPassword] = useState('parent123');
+
+  // Phone Normalizer helper (strips spaces, symbols, +233 / 0)
+  const normalizePhone = (phone: string) => {
+    return phone.replace(/[\s\-\(\)\+]/g, '').replace(/^233/, '0');
+  };
 
   const handleRoleTabChange = (role: UserRole) => {
     setSelectedRole(role);
@@ -41,7 +48,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       setIdentifier(teachers[0]?.staffId || 'LIS-STF-001');
       setPassword('teacher123');
     } else if (role === 'parent') {
-      setIdentifier(parents[0]?.email || 'emmanuel.mensah@gmail.com');
+      setIdentifier('0244987654');
       setPassword('parent123');
     } else if (role === 'student') {
       setIdentifier(students[0]?.studentId || 'LIS-2026-001');
@@ -57,19 +64,27 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       onLoginSuccess('proprietor');
     } else if (selectedRole === 'teacher') {
       const match = teachers.find(
-        (t) => t.staffId.toLowerCase() === identifier.trim().toLowerCase() || t.email.toLowerCase() === identifier.trim().toLowerCase()
+        (t) => t.staffId.toLowerCase() === identifier.trim().toLowerCase() ||
+               t.email.toLowerCase() === identifier.trim().toLowerCase() ||
+               normalizePhone(t.phone) === normalizePhone(identifier.trim())
       ) || teachers[0];
       toast.success(`Welcome, ${match.fullName}`, 'Educator Logged In');
       onLoginSuccess('teacher', { teacher: match });
     } else if (selectedRole === 'parent') {
-      const match = parents.find(
-        (p) => p.email.toLowerCase() === identifier.trim().toLowerCase() || p.phone.includes(identifier.trim())
-      ) || parents[0];
-      toast.success(`Welcome, ${match.fullName}`, 'Parent Portal Access');
+      const cleanInput = identifier.trim();
+      const match = parents.find((p) => {
+        const phoneMatch = normalizePhone(p.phone) === normalizePhone(cleanInput) ||
+                           (p.alternatePhone && normalizePhone(p.alternatePhone) === normalizePhone(cleanInput));
+        const emailMatch = p.email && p.email.toLowerCase() === cleanInput.toLowerCase();
+        return phoneMatch || emailMatch;
+      }) || parents[0];
+
+      toast.success(`Welcome, ${match.fullName}!`, 'Parent / WhatsApp Verified');
       onLoginSuccess('parent', { parent: match });
     } else if (selectedRole === 'student') {
       const match = students.find(
-        (s) => s.studentId.toLowerCase() === identifier.trim().toLowerCase() || s.fullName.toLowerCase().includes(identifier.trim().toLowerCase())
+        (s) => s.studentId.toLowerCase() === identifier.trim().toLowerCase() ||
+               s.fullName.toLowerCase().includes(identifier.trim().toLowerCase())
       ) || students[0];
       toast.success(`Welcome, ${match.fullName}!`, 'Student Portal');
       onLoginSuccess('student', { student: match });
@@ -84,7 +99,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       toast.success(`Logged in as ${userObj?.fullName || 'Teacher'}`);
       onLoginSuccess('teacher', { teacher: userObj || teachers[0] });
     } else if (role === 'parent') {
-      toast.success(`Logged in as ${userObj?.fullName || 'Parent'}`);
+      toast.success(`Logged in via Phone (${userObj?.phone || '0244 498 7654'})`);
       onLoginSuccess('parent', { parent: userObj || parents[0] });
     } else if (role === 'student') {
       toast.success(`Logged in as ${userObj?.fullName || 'Student'}`);
@@ -170,6 +185,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           >
             <button
               type="button"
+              onClick={() => handleRoleTabChange('parent')}
+              className={`role-pill ${selectedRole === 'parent' ? 'active' : ''}`}
+              style={{ justifyContent: 'center', padding: '0.45rem 0.2rem', fontSize: '0.75rem' }}
+            >
+              <Users size={13} />
+              <span>Parent</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => handleRoleTabChange('proprietor')}
               className={`role-pill ${selectedRole === 'proprietor' ? 'active' : ''}`}
               style={{ justifyContent: 'center', padding: '0.45rem 0.2rem', fontSize: '0.75rem' }}
@@ -190,16 +215,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
             <button
               type="button"
-              onClick={() => handleRoleTabChange('parent')}
-              className={`role-pill ${selectedRole === 'parent' ? 'active' : ''}`}
-              style={{ justifyContent: 'center', padding: '0.45rem 0.2rem', fontSize: '0.75rem' }}
-            >
-              <Users size={13} />
-              <span>Parent</span>
-            </button>
-
-            <button
-              type="button"
               onClick={() => handleRoleTabChange('student')}
               className={`role-pill ${selectedRole === 'student' ? 'active' : ''}`}
               style={{ justifyContent: 'center', padding: '0.45rem 0.2rem', fontSize: '0.75rem' }}
@@ -213,23 +228,35 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label className="form-label">
-                {selectedRole === 'proprietor' && 'Administrator Email / Username'}
-                {selectedRole === 'teacher' && 'Staff ID / Educator Email'}
-                {selectedRole === 'parent' && 'Parent Email / Phone Number'}
-                {selectedRole === 'student' && 'Student ID (e.g. LIS-2026-001)'}
+                {selectedRole === 'parent' && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <Phone size={13} color="#10B981" />
+                    <span>Parent Phone / WhatsApp Number (or Email) *</span>
+                  </span>
+                )}
+                {selectedRole === 'proprietor' && 'Administrator Email / Username *'}
+                {selectedRole === 'teacher' && 'Staff ID / Educator Email *'}
+                {selectedRole === 'student' && 'Student ID (e.g. LIS-2026-001) *'}
               </label>
               <input
                 type="text"
                 className="form-input"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
+                placeholder={selectedRole === 'parent' ? 'e.g. 0244987654 or +233 24 498 7654' : ''}
                 required
               />
+              {selectedRole === 'parent' && (
+                <div style={{ fontSize: '0.7rem', color: '#64748B', marginTop: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <MessageCircle size={12} color="#10B981" />
+                  <span>No email required! Sign in using your registered mobile number.</span>
+                </div>
+              )}
             </div>
 
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                <label className="form-label" style={{ margin: 0 }}>Password / Security PIN</label>
+                <label className="form-label" style={{ margin: 0 }}>Password / Security PIN *</label>
                 <span style={{ fontSize: '0.7rem', color: '#C88719', fontWeight: 700, cursor: 'pointer' }}>
                   Forgot PIN?
                 </span>
@@ -263,11 +290,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
               <button
                 type="button"
+                onClick={() => handleQuickDemoLogin('parent', parents[0])}
+                className="btn btn-secondary btn-sm"
+                style={{ fontSize: '0.725rem', justifyContent: 'flex-start' }}
+              >
+                <Phone size={12} color="#10B981" />
+                <span>Parent (0244 498 7654)</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => handleQuickDemoLogin('proprietor')}
                 className="btn btn-secondary btn-sm"
-                style={{ fontSize: '0.75rem', justifyContent: 'flex-start' }}
+                style={{ fontSize: '0.725rem', justifyContent: 'flex-start' }}
               >
-                <Building2 size={13} color="#C88719" />
+                <Building2 size={12} color="#C88719" />
                 <span>Proprietor (Admin)</span>
               </button>
 
@@ -275,29 +312,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 type="button"
                 onClick={() => handleQuickDemoLogin('teacher', teachers[0])}
                 className="btn btn-secondary btn-sm"
-                style={{ fontSize: '0.75rem', justifyContent: 'flex-start' }}
+                style={{ fontSize: '0.725rem', justifyContent: 'flex-start' }}
               >
-                <UserCheck size={13} color="#3B82F6" />
+                <UserCheck size={12} color="#3B82F6" />
                 <span>{teachers[0]?.fullName.split(' ')[0] || 'Teacher'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickDemoLogin('parent', parents[0])}
-                className="btn btn-secondary btn-sm"
-                style={{ fontSize: '0.75rem', justifyContent: 'flex-start' }}
-              >
-                <Users size={13} color="#10B981" />
-                <span>{parents[0]?.fullName.split(' ')[0] || 'Parent'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleQuickDemoLogin('student', students[0])}
                 className="btn btn-secondary btn-sm"
-                style={{ fontSize: '0.75rem', justifyContent: 'flex-start' }}
+                style={{ fontSize: '0.725rem', justifyContent: 'flex-start' }}
               >
-                <GraduationCap size={13} color="#8B5CF6" />
+                <GraduationCap size={12} color="#8B5CF6" />
                 <span>{students[0]?.fullName.split(' ')[0] || 'Student'}</span>
               </button>
             </div>
