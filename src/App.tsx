@@ -292,8 +292,6 @@ export function App() {
                   teacher={currentTeacher}
                   classes={classes}
                   subjects={subjects}
-                  students={students}
-                  marks={marks}
                   courseMaterials={courseMaterials}
                   activeTerm={activeTerm}
                   onNavigateTab={(tab) => setActiveCategory(tab)}
@@ -366,7 +364,7 @@ export function App() {
               {activeCategory === 'fee_payment' && (
                 <ParentFeePayment
                   parent={currentParent}
-                  wards={parentWards}
+                  student={selectedWard}
                   feePayments={feePayments}
                   feeStructures={feeStructures}
                   activeTerm={activeTerm}
@@ -375,7 +373,7 @@ export function App() {
 
               {activeCategory === 'curriculum' && (
                 <WardCurriculumView
-                  ward={selectedWard}
+                  student={selectedWard}
                   courseMaterials={courseMaterials}
                   activeTerm={activeTerm}
                 />

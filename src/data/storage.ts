@@ -249,6 +249,12 @@ export const SchoolStore = {
     setStored(STORAGE_KEYS.PAYROLL, updated);
     return updated;
   },
+  updatePayroll: (record: PayrollRecord) => {
+    const list = SchoolStore.getPayroll();
+    const updated = list.map(p => p.id === record.id ? record : p);
+    setStored(STORAGE_KEYS.PAYROLL, updated);
+    return updated;
+  },
   updatePayrollStatus: (id: string, status: 'Paid' | 'Pending', paymentDate?: string) => {
     const list = SchoolStore.getPayroll();
     const updated = list.map(item => item.id === id ? { ...item, paymentStatus: status, paymentDate: paymentDate || new Date().toISOString().split('T')[0] } : item);

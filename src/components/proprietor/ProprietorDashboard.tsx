@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 
 interface ProprietorDashboardProps {
+  classes?: ClassRoom[];
   students: Student[];
   teachers: Teacher[];
   feePayments: FeePayment[];

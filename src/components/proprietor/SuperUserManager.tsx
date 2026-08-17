@@ -3,15 +3,18 @@ import { SuperUser } from '../../types';
 import { Modal } from '../common/Modal';
 import { SchoolStore } from '../../data/storage';
 import {
-  ShieldCheck,
+  UserCog,
   UserPlus,
   Edit2,
   Trash2,
-  Lock,
+  Shield,
   CheckCircle2,
+  Lock,
+  Key,
+  Sliders,
   Sparkles,
-  KeyRound,
-  Users
+  Phone,
+  Mail
 } from 'lucide-react';
 
 interface SuperUserManagerProps {
@@ -24,11 +27,11 @@ export const SuperUserManager: React.FC<SuperUserManagerProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<SuperUser | null>(null);
 
-  // Form states
+  // Form State
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [roleTitle, setRoleTitle] = useState('Bursar / Accounts Officer');
-  const [status, setStatus] = useState<'Active' | 'Suspended'>('Active');
+  const [status, setStatus] = useState<'Active' | 'Suspended' | 'Inactive'>('Active');
 
   // Permission checkboxes
   const [canManageFees, setCanManageFees] = useState(true);
@@ -44,13 +47,13 @@ export const SuperUserManager: React.FC<SuperUserManagerProps> = ({
       setFullName(user.fullName);
       setEmail(user.email);
       setRoleTitle(user.roleTitle);
-      setStatus(user.status);
-      setCanManageFees(user.permissions.canManageFees);
-      setCanManagePayroll(user.permissions.canManagePayroll);
-      setCanManageUsers(user.permissions.canManageUsers);
-      setCanManageSubjects(user.permissions.canManageSubjects);
-      setCanManageCourseContent(user.permissions.canManageCourseContent);
-      setCanPromoteStudents(user.permissions.canPromoteStudents);
+      setStatus(user.status || 'Active');
+      setCanManageFees(user.permissions?.canManageFees ?? true);
+      setCanManagePayroll(user.permissions?.canManagePayroll ?? false);
+      setCanManageUsers(user.permissions?.canManageUsers ?? false);
+      setCanManageSubjects(user.permissions?.canManageSubjects ?? false);
+      setCanManageCourseContent(user.permissions?.canManageCourseContent ?? false);
+      setCanPromoteStudents(user.permissions?.canPromoteStudents ?? false);
     } else {
       setEditingUser(null);
       setFullName('');
@@ -61,7 +64,7 @@ export const SuperUserManager: React.FC<SuperUserManagerProps> = ({
       setCanManagePayroll(false);
       setCanManageUsers(false);
       setCanManageSubjects(false);
-      setCanManageCourseContent(true);
+      setCanManageCourseContent(false);
       setCanPromoteStudents(false);
     }
     setIsModalOpen(true);
@@ -69,7 +72,6 @@ export const SuperUserManager: React.FC<SuperUserManagerProps> = ({
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-
     const permissions = {
       canManageFees,
       canManagePayroll,
@@ -111,18 +113,15 @@ export const SuperUserManager: React.FC<SuperUserManagerProps> = ({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
-      {/* Title */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      {/* Header & New Button */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-            <ShieldCheck size={22} color="var(--brand-gold)" />
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--brand-primary)' }}>
-              Superuser & Delegated Access Management
-            </h2>
-          </div>
-          <p style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem' }}>
-            Create administrative accounts and assign granular permissions (fee updating, course content management, promotions)
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-primary)' }}>
+            Superuser Access & Role-Based Permissions
+          </h3>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '0.825rem' }}>
+            Delegate administrative access (Principal, Bursar, Form Masters, Exam Officers) with granular security rights
           </p>
         </div>
 
@@ -131,16 +130,16 @@ export const SuperUserManager: React.FC<SuperUserManagerProps> = ({
           className="btn btn-gold"
         >
           <UserPlus size={16} />
-          <span>Create Delegated Superuser</span>
+          <span>Appoint Superuser</span>
         </button>
       </div>
 
-      {/* Superusers List */}
+      {/* Superuser Cards */}
       <div className="card">
         <div className="card-header">
           <div className="card-title">
-            <KeyRound size={18} color="var(--brand-primary)" />
-            <span>Delegated Administrative Officers</span>
+            <UserCog size={18} color="var(--brand-primary)" />
+            <span>Authorized Administrative Delegations</span>
           </div>
           <span className="badge badge-gold">{superUsers.length} Superusers</span>
         </div>
@@ -149,72 +148,83 @@ export const SuperUserManager: React.FC<SuperUserManagerProps> = ({
           <table className="custom-table">
             <thead>
               <tr>
-                <th>Superuser Name</th>
-                <th>Role / Title</th>
-                <th>Granted Administrative Permissions</th>
+                <th>Administrator</th>
+                <th>Designation / Role</th>
+                <th>Granted Authority</th>
                 <th>Status</th>
-                <th>Date Created</th>
+                <th>Date Appointed</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {superUsers.map((user) => (
-                <tr key={user.id}>
-                  <td>
-                    <div style={{ fontWeight: 700, color: 'var(--brand-primary)' }}>{user.fullName}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{user.email}</div>
-                  </td>
-                  <td>
-                    <span className="badge badge-blue">{user.roleTitle}</span>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', maxWidth: '380px' }}>
-                      {user.permissions.canManageFees && <span className="badge badge-green">Fees Control</span>}
-                      {user.permissions.canManagePayroll && <span className="badge badge-green">Payroll</span>}
-                      {user.permissions.canManageUsers && <span className="badge badge-gold">Students & Teachers</span>}
-                      {user.permissions.canManageSubjects && <span className="badge badge-blue">Subjects</span>}
-                      {user.permissions.canManageCourseContent && <span className="badge badge-blue">Course Content</span>}
-                      {user.permissions.canPromoteStudents && <span className="badge badge-gold">Promotions</span>}
-                    </div>
-                  </td>
-                  <td>
-                    <span className={`badge ${user.status === 'Active' ? 'badge-green' : 'badge-gray'}`}>
-                      {user.status}
-                    </span>
-                  </td>
-                  <td style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>{user.dateCreated}</td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '0.4rem' }}>
-                      <button
-                        onClick={() => handleOpenModal(user)}
-                        className="btn btn-secondary btn-sm"
-                        title="Edit Permissions"
-                      >
-                        <Edit2 size={13} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user.id, user.fullName)}
-                        className="btn btn-danger btn-sm"
-                        title="Revoke Access"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {superUsers.map((u) => {
+                const perms = u.permissions || {
+                  canManageFees: u.canUpdateFees,
+                  canManagePayroll: u.canViewFinance,
+                  canManageUsers: u.canManageUsers,
+                  canManageSubjects: u.canUpdateCourseContent,
+                  canManageCourseContent: u.canUpdateCourseContent,
+                  canPromoteStudents: u.canManagePromotions
+                };
+                return (
+                  <tr key={u.id}>
+                    <td>
+                      <div style={{ fontWeight: 700, color: '#0F2537' }}>{u.fullName}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{u.email}</div>
+                    </td>
+                    <td>
+                      <span className="badge badge-blue">{u.roleTitle}</span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', maxWidth: '350px' }}>
+                        {perms.canManageFees && <span className="badge badge-gold">Fee Tariffs</span>}
+                        {perms.canManagePayroll && <span className="badge badge-green">Payroll & P&L</span>}
+                        {perms.canManageUsers && <span className="badge badge-purple">Admissions</span>}
+                        {perms.canManageSubjects && <span className="badge badge-gray">Subjects</span>}
+                        {perms.canManageCourseContent && <span className="badge badge-blue">Lesson Schemes</span>}
+                        {perms.canPromoteStudents && <span className="badge badge-emerald">Promotions</span>}
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`badge ${u.status === 'Active' ? 'badge-green' : 'badge-red'}`}>
+                        {u.status}
+                      </span>
+                    </td>
+                    <td style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
+                      {u.dateCreated || u.createdAt || '2025-09-01'}
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '0.4rem' }}>
+                        <button
+                          onClick={() => handleOpenModal(u)}
+                          className="btn btn-secondary btn-sm"
+                          title="Edit Permissions"
+                        >
+                          <Edit2 size={13} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(u.id, u.fullName)}
+                          className="btn btn-danger btn-sm"
+                          title="Revoke Delegation"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Superuser Create / Edit Modal */}
+      {/* Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingUser ? 'Edit Superuser Rights' : 'Create Delegated Superuser'}
-        subtitle="Livine International School Role-Based Access Control"
-        size="large"
+        title={editingUser ? 'Edit Superuser Delegations' : 'Delegate Superuser Access'}
+        subtitle="Role-Based Security & Authorization Matrix"
       >
         <form onSubmit={handleSave}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -225,31 +235,31 @@ export const SuperUserManager: React.FC<SuperUserManagerProps> = ({
                 className="form-input"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="e.g. Mr. George Osei"
+                placeholder="e.g. Mr. George Osei-Bonsu"
                 required
               />
             </div>
 
             <div className="form-group">
-              <label className="form-label">Email Address *</label>
+              <label className="form-label">Official Email Address *</label>
               <input
                 type="email"
                 className="form-input"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. g.osei@livineinternationalschool.edu.gh"
+                placeholder="user@livineinternationalschool.edu.gh"
                 required
               />
             </div>
 
             <div className="form-group">
-              <label className="form-label">Role Title / Designation *</label>
+              <label className="form-label">Administrative Title *</label>
               <input
                 type="text"
                 className="form-input"
                 value={roleTitle}
                 onChange={(e) => setRoleTitle(e.target.value)}
-                placeholder="e.g. Bursar & Financial Controller"
+                placeholder="e.g. Headteacher / Vice Principal"
                 required
               />
             </div>
@@ -261,81 +271,75 @@ export const SuperUserManager: React.FC<SuperUserManagerProps> = ({
                 value={status}
                 onChange={(e) => setStatus(e.target.value as any)}
               >
-                <option value="Active">Active</option>
-                <option value="Suspended">Suspended</option>
+                <option value="Active">Active Account</option>
+                <option value="Suspended">Suspended / Inactive</option>
               </select>
             </div>
           </div>
 
-          <div style={{ backgroundColor: '#F8FAFC', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid #CBD5E1', marginTop: '0.5rem', marginBottom: '1.25rem' }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--brand-primary)', marginBottom: '0.75rem' }}>
-              DELEGATED PERMISSIONS & CAPABILITIES:
+          <div style={{ marginTop: '1rem', borderTop: '1px solid var(--border-light)', paddingTop: '1rem' }}>
+            <div style={{ fontSize: '0.825rem', fontWeight: 800, color: 'var(--brand-primary)', marginBottom: '0.5rem' }}>
+              Granular Permission Capabilities:
             </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={canManageFees}
                   onChange={(e) => setCanManageFees(e.target.checked)}
-                  style={{ width: '16px', height: '16px' }}
                 />
-                <span><strong>Manage & Update Fees</strong> (Payments, Arrears)</span>
+                <span>Manage Fee Tariffs & Record Payments</span>
               </label>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={canManagePayroll}
                   onChange={(e) => setCanManagePayroll(e.target.checked)}
-                  style={{ width: '16px', height: '16px' }}
                 />
-                <span><strong>Manage Staff Payroll</strong> (SSNIT, Disbursement)</span>
+                <span>Manage Staff Payroll & Expenses</span>
               </label>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={canManageUsers}
                   onChange={(e) => setCanManageUsers(e.target.checked)}
-                  style={{ width: '16px', height: '16px' }}
                 />
-                <span><strong>Add / Remove Students & Teachers</strong></span>
+                <span>Enroll & Remove Students / Teachers</span>
               </label>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={canManageSubjects}
                   onChange={(e) => setCanManageSubjects(e.target.checked)}
-                  style={{ width: '16px', height: '16px' }}
                 />
-                <span><strong>Add / Remove Curriculum Subjects</strong></span>
+                <span>Configure Subjects & Disciplines</span>
               </label>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={canManageCourseContent}
                   onChange={(e) => setCanManageCourseContent(e.target.checked)}
-                  style={{ width: '16px', height: '16px' }}
                 />
-                <span><strong>Upload & Delete Course Content</strong></span>
+                <span>Approve Schemes of Learning</span>
               </label>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={canPromoteStudents}
                   onChange={(e) => setCanPromoteStudents(e.target.checked)}
-                  style={{ width: '16px', height: '16px' }}
                 />
-                <span><strong>Promote or Repeat Students</strong></span>
+                <span>Execute Annual Pupil Promotions</span>
               </label>
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.25rem' }}>
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
@@ -348,7 +352,7 @@ export const SuperUserManager: React.FC<SuperUserManagerProps> = ({
               className="btn btn-gold"
             >
               <CheckCircle2 size={16} />
-              <span>{editingUser ? 'Save Superuser Permissions' : 'Create Superuser'}</span>
+              <span>{editingUser ? 'Update Delegations' : 'Grant Superuser Role'}</span>
             </button>
           </div>
         </form>

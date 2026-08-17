@@ -4,48 +4,55 @@ export type AcademicTerm = 'Term 1' | 'Term 2' | 'Term 3';
 
 export type PromotionStatus = 'Promoted' | 'Repeated' | 'Probation' | 'Pending Assessment';
 
-export interface SuperUser {
-  id: string;
-  fullName: string;
+export interface SchoolInfo {
+  name: string;
+  motto: string;
+  address: string;
+  campus?: string;
+  digitalAddress: string;
+  phone: string;
   email: string;
-  roleTitle: string; // e.g. "Vice Principal", "Bursar", "Academic Coordinator"
-  avatarUrl?: string;
-  permissions: {
-    canManageFees: boolean;
-    canManagePayroll: boolean;
-    canManageUsers: boolean; // Add / remove students and teachers
-    canManageSubjects: boolean; // Add / remove subjects
-    canManageCourseContent: boolean; // Add / remove course content
-    canPromoteStudents: boolean; // Promote or repeat students
+  website: string;
+  curriculum: string;
+  academicYear: string;
+  currentTerm: AcademicTerm;
+  termDates: {
+    term1: string;
+    term2: string;
+    term3: string;
   };
-  dateCreated: string;
-  status: 'Active' | 'Suspended';
+  nextTermBegins: string;
+  headTeacherName: string;
+  proprietorName: string;
 }
 
 export interface ClassRoom {
   id: string;
-  name: string; // e.g. "JHS 2 Pioneer", "Basic 4 Excellence", "KG 2 Diamond"
+  name: string; // e.g. "Basic 7 (JHS 1)", "Kindergarten 1"
   level: 'Nursery' | 'KG' | 'Lower Primary' | 'Upper Primary' | 'JHS';
-  stageNumber: number; // 1-9 (1=B1, 9=JHS3, -2=Nursery, -1=KG1, 0=KG2)
-  formMasterId: string;
-  formMasterName: string;
-  capacity: number;
-  enrolledCount: number;
+  stageNumber: number; // 1 to 9 (Nursery 1=1 to JHS 3=9)
+  classTeacherId?: string;
+  classTeacherName?: string;
+  formMasterId?: string;
+  formMasterName?: string;
   roomNumber: string;
+  capacity: number;
+  enrolledCount?: number;
 }
 
 export interface Subject {
   id: string;
-  code: string;
   name: string;
+  code: string;
   category: 'Core' | 'Elective';
-  applicableLevels: ('Nursery' | 'KG' | 'Lower Primary' | 'Upper Primary' | 'JHS')[];
-  description: string;
+  classLevels?: ('Nursery' | 'KG' | 'Lower Primary' | 'Upper Primary' | 'JHS' | string)[];
+  applicableLevels?: string[];
+  description?: string;
 }
 
 export interface Student {
   id: string;
-  studentId: string; // e.g. "LIS-2025-042"
+  studentId: string; // e.g. "LIS-2023-0142"
   fullName: string;
   gender: 'Male' | 'Female';
   dob: string;
@@ -55,36 +62,33 @@ export interface Student {
   parentId: string;
   parentName: string;
   parentPhone: string;
-  parentEmail: string;
+  parentEmail?: string;
   residentialAddress: string;
   hometown: string;
   admissionDate: string;
-  status: 'Active' | 'Graduated' | 'Transferred';
+  status: 'Active' | 'Graduated' | 'Suspended' | 'Withdrawn';
   attendanceDaysPresent: number;
   attendanceDaysTotal: number;
   house: 'Kwame Nkrumah' | 'Yaa Asantewaa' | 'Okomfo Anokye' | 'Kwegyir Aggrey';
-  
-  // Promotion & Repetition Tracking
-  promotionDecision: PromotionStatus;
+  promotionDecision?: PromotionStatus;
   promotedToClassId?: string;
   promotedToClassName?: string;
   promotionRemark?: string;
-  academicYearPromoted?: string;
 }
 
 export interface Teacher {
   id: string;
-  staffId: string; // "LIS-STF-012"
+  staffId: string; // e.g. "LIS-STF-001"
   fullName: string;
   email: string;
   phone: string;
   gender: 'Male' | 'Female';
   qualification: string;
-  roleTitle: string;
-  assignedClasses: string[]; // Class IDs
-  assignedSubjects: string[]; // Subject IDs
-  basicSalary: number;
-  allowances: number;
+  roleTitle: string; // e.g. "Head of Sciences & JHS 2 Form Master"
+  assignedClasses: string[]; // Array of ClassRoom IDs
+  assignedSubjects: string[]; // Array of Subject IDs
+  basicSalary: number; // In GHS
+  allowances: number; // In GHS
   bankAccount: {
     bankName: string;
     accountNumber: string;
@@ -102,6 +106,7 @@ export interface Parent {
   phone: string;
   alternatePhone?: string;
   occupation: string;
+  relationship?: string;
   residentialAddress: string;
   wards: string[]; // Array of Student IDs
 }
@@ -165,62 +170,80 @@ export interface FeeStructure {
   academicYear: string;
   term: AcademicTerm;
   tuitionFee: number;
+  facilityLevy?: number;
+  tlmMaterialsFee?: number;
   ptaLevy: number;
   ictLabFee: number;
-  libraryFee: number;
-  examStationeryFee: number;
-  canteenFeedingFee: number;
-  busTransportFee: number;
-  firstAidFee: number;
+  libraryFee?: number;
+  examStationeryFee?: number;
+  canteenFeedingFee?: number;
+  busTransportFee?: number;
+  firstAidFee?: number;
   totalFee: number;
   dueDate: string;
 }
 
 export interface FeePayment {
   id: string;
-  receiptNo: string; // "LIS-REC-2025-0089"
+  receiptNo?: string;
+  receiptNumber?: string;
   studentId: string;
   studentName: string;
-  classId: string;
+  classId?: string;
   className: string;
   term: AcademicTerm;
   academicYear: string;
   amountPaid: number;
   paymentMethod: 'MTN Mobile Money' | 'Telecel Cash' | 'AT Money' | 'Bank Deposit / Transfer' | 'Cash';
-  transactionRef: string;
-  date: string;
-  receivedBy: string;
+  momoTransactionId?: string;
+  transactionRef?: string;
+  date?: string;
+  paymentDate?: string;
+  receivedBy?: string;
+  recordedBy?: string;
   payerName: string;
   payerPhone: string;
+  status?: 'Completed' | 'Pending' | 'Voided';
   notes?: string;
 }
 
 export interface PayrollRecord {
   id: string;
-  monthYear: string; // "October 2025"
+  monthYear?: string;
+  month?: string;
   staffId: string;
   staffName: string;
   roleTitle: string;
   basicSalary: number;
-  responsibilityAllowance: number;
-  transportAllowance: number;
-  housingAllowance: number;
+  allowances?: number;
+  responsibilityAllowance?: number;
+  transportAllowance?: number;
+  housingAllowance?: number;
   grossSalary: number;
   // Statutory deductions in Ghana
   ssnitEmployee: number; // 5.5%
   ssnitEmployer: number; // 13.5%
   graPayeTax: number;
-  staffWelfare: number;
-  totalDeductions: number;
+  staffWelfare?: number;
+  otherDeductions?: number;
+  totalDeductions?: number;
   netSalary: number;
   paymentStatus: 'Paid' | 'Pending';
   paymentDate?: string;
+  disbursementDate?: string;
   paymentMethod: 'Bank Transfer' | 'MTN MoMo' | 'Cheque';
+  bankAccount?: {
+    bankName: string;
+    accountNumber: string;
+    branch?: string;
+  };
+  ssnitNumber?: string;
 }
 
 export interface ExpenseRecord {
   id: string;
-  expenseNo: string; // "EXP-2025-045"
+  expenseNo?: string;
+  voucherNumber?: string;
   title: string;
   category: 
     | 'Teaching & Learning Materials (TLMs)'
@@ -236,15 +259,18 @@ export interface ExpenseRecord {
   amount: number;
   date: string;
   paymentMethod: 'Bank Transfer' | 'Cash' | 'Mobile Money' | 'Cheque';
-  vendorOrRecipient: string;
-  recordedBy: string;
+  vendorOrRecipient?: string;
+  vendorRecipient?: string;
+  recordedBy?: string;
+  approvedBy?: string;
   description: string;
   receiptNumber?: string;
 }
 
 export interface AnonymousComplaint {
   id: string;
-  trackingCode: string; // e.g. "LIS-SAFE-4821"
+  trackingCode?: string;
+  ticketNumber?: string;
   senderType: 'Student' | 'Teacher';
   targetCategory:
     | 'Bullying & Peer Harassment'
@@ -254,16 +280,20 @@ export interface AnonymousComplaint {
     | 'Infrastructure, Washrooms & Safety'
     | 'School Bus & Transportation'
     | 'Staff Welfare & Working Conditions'
-    | 'General Improvement Suggestion';
+    | 'General Improvement Suggestion'
+    | string;
   subject: string;
-  message: string;
+  message?: string;
+  description?: string;
   incidentLocation?: string;
   incidentDate?: string;
   severity: 'Low' | 'Medium' | 'High' | 'Critical';
-  status: 'New' | 'Under Investigation' | 'Resolved' | 'Dismissed';
+  status: 'New' | 'Under Investigation' | 'Under Review' | 'Resolved' | 'Dismissed';
   adminNotes?: string;
+  investigationNotes?: string;
+  assignedTo?: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   resolvedAt?: string;
 }
 
@@ -278,20 +308,21 @@ export interface CourseMaterial {
   term: AcademicTerm;
   academicYear: string;
   weekNumber: number;
-  strand: string; // NaCCA Curriculum Strand (e.g. "Strand 1: Diversity of Matter")
-  subStrand: string; // Sub-strand (e.g. "Sub-strand 1: Living and Non-living things")
-  contentStandard: string; // e.g. "B7.1.1.1: Demonstrate understanding of..."
-  performanceIndicator: string; // e.g. "B7.1.1.1.1: Classify organisms into kingdoms..."
+  strand: string;
+  subStrand: string;
+  contentStandard?: string;
+  performanceIndicator?: string;
   topicTitle: string;
   lessonNotes: string;
-  learningObjectives: string[];
+  learningObjectives?: string[];
+  learningOutcomes?: string[];
   homeworkTask?: {
     title: string;
     instructions: string;
     dueDate: string;
     maxPoints: number;
   };
-  attachments: {
+  attachments?: {
     fileName: string;
     fileSize: string;
     fileType: string;
@@ -308,4 +339,27 @@ export interface AttendanceRecord {
   status: 'Present' | 'Absent' | 'Late' | 'Excused';
   remarks?: string;
   markedByTeacherId: string;
+}
+
+export interface SuperUser {
+  id: string;
+  fullName: string;
+  email: string;
+  roleTitle: string;
+  permissions?: {
+    canManageFees: boolean;
+    canManagePayroll: boolean;
+    canManageUsers: boolean;
+    canManageSubjects: boolean;
+    canManageCourseContent: boolean;
+    canPromoteStudents: boolean;
+  };
+  canUpdateFees?: boolean;
+  canUpdateCourseContent?: boolean;
+  canManageUsers?: boolean;
+  canManagePromotions?: boolean;
+  canViewFinance?: boolean;
+  dateCreated?: string;
+  createdAt?: string;
+  status: 'Active' | 'Inactive' | 'Suspended';
 }

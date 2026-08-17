@@ -18,6 +18,7 @@ export const SCHOOL_INFO = {
   name: 'Livine International School',
   motto: 'Excellence in Knowledge, Integrity in Character',
   address: 'Plot 42, Ring Road East / East Legon Campus, Accra, Ghana',
+  campus: 'East Legon Campus, Accra',
   digitalAddress: 'GA-492-3810',
   phone: '+233 (0) 302 789 450 / +233 (0) 244 123 456',
   email: 'info@livineinternationalschool.edu.gh',
