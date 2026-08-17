@@ -76,7 +76,7 @@ html, body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+  overflow-x: clip; /* clip does not break position: sticky like overflow-x: hidden does */
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -107,6 +107,7 @@ a {
   width: 100%;
   background-color: var(--bg-app);
   position: relative;
+  align-items: flex-start; /* Ensures sidebar stays sticky at top: 0 */
 }
 
 .main-content-wrapper {
@@ -115,6 +116,7 @@ a {
   display: flex;
   flex-direction: column;
   background-color: var(--bg-app);
+  min-height: 100vh;
 }
 
 .content-area {
@@ -279,6 +281,7 @@ a {
   height: 100vh;
   position: sticky;
   top: 0;
+  align-self: flex-start;
   flex-shrink: 0;
   z-index: 50;
   display: flex;
