@@ -9,6 +9,9 @@ import {
 import { formatGHS } from '../../utils/currency';
 import { StatusBadge } from '../common/Badge';
 import { Modal } from '../common/Modal';
+import { FeeReceiptModal } from './FeeReceiptModal';
+import { exportDebtorsToCSV } from '../../utils/export';
+import { toast } from '../common/Toast';
 import { SchoolStore } from '../../data/storage';
 import { SCHOOL_INFO } from '../../data/mockData';
 import {
@@ -21,7 +24,8 @@ import {
   Building,
   School,
   Edit2,
-  Trash2
+  Trash2,
+  Download
 } from 'lucide-react';
 
 interface FeesManagerProps {
@@ -65,26 +69,29 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
     else if (student.className.includes('Basic 4') || student.className.includes('Basic 5') || student.className.includes('Basic 6')) level = 'Upper Primary';
     else if (student.className.includes('JHS')) level = 'JHS';
 
-    const structure = feeStructures.find(f => f.classLevel === level) || feeStructures[0];
+    const structure = feeStructures.find(f => f.classLevel === level);
     const totalBilled = structure ? structure.totalFee : 3000;
 
-    const studentPayments = feePayments.filter(p => p.studentId === student.id && p.term === activeTerm);
-    const totalPaid = studentPayments.reduce((sum, p) => sum + p.amountPaid, 0);
+    const studentPayments = feePayments.filter(
+      p => p.studentId === student.id && p.term === activeTerm
+    );
+    const totalPaid = studentPayments.reduce((acc, p) => acc + p.amountPaid, 0);
     const arrears = Math.max(0, totalBilled - totalPaid);
 
-    let status = 'Unpaid';
-    if (totalPaid >= totalBilled) status = 'Paid';
+    let status: 'Paid' | 'Partial' | 'Pending' | 'Overdue' = 'Pending';
+    if (arrears === 0) status = 'Paid';
     else if (totalPaid > 0) status = 'Partial';
+    else status = 'Overdue';
 
-    return { totalBilled, totalPaid, arrears, status, payments: studentPayments, structure };
+    return {
+      structure,
+      totalBilled,
+      totalPaid,
+      arrears,
+      status,
+      payments: studentPayments
+    };
   };
-
-  // Filter students
-  const filteredStudents = students.filter(s => {
-    const matchesSearch = s.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || s.studentId.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesClass = selectedClass === 'all' || s.classId === selectedClass;
-    return matchesSearch && matchesClass;
-  });
 
   const handleOpenPayment = (student: Student, paymentToEdit?: FeePayment) => {
     setSelectedStudentForPayment(student);
@@ -92,18 +99,19 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
       setEditingPayment(paymentToEdit);
       setPayAmount(paymentToEdit.amountPaid);
       setPayMethod(paymentToEdit.paymentMethod);
-      setPayerName(paymentToEdit.payerName);
-      setPayerPhone(paymentToEdit.payerPhone);
-      setTransactionRef(paymentToEdit.transactionRef);
+      setPayerName(paymentToEdit.payerName || student.parentName);
+      setPayerPhone(paymentToEdit.payerPhone || student.parentPhone);
+      setTransactionRef(paymentToEdit.momoTransactionId || '');
       setNotes(paymentToEdit.notes || '');
     } else {
       setEditingPayment(null);
-      const feeInfo = getStudentFeeDetails(student);
-      setPayAmount(feeInfo.arrears > 0 ? feeInfo.arrears : 1000);
-      setPayerName(student.parentName || '');
-      setPayerPhone(student.parentPhone || '');
-      setTransactionRef(`MM-TXN-${Math.floor(100000000 + Math.random() * 900000000)}`);
-      setNotes(`Fees payment for ${activeTerm}`);
+      const details = getStudentFeeDetails(student);
+      setPayAmount(details.arrears > 0 ? details.arrears : 500);
+      setPayMethod('MTN Mobile Money');
+      setPayerName(student.parentName);
+      setPayerPhone(student.parentPhone);
+      setTransactionRef(`MM-${Math.floor(100000000 + Math.random() * 900000000)}`);
+      setNotes('');
     }
     setIsPaymentModalOpen(true);
   };
@@ -117,86 +125,83 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
         ...editingPayment,
         amountPaid: Number(payAmount),
         paymentMethod: payMethod,
-        transactionRef: transactionRef || editingPayment.transactionRef,
-        payerName: payerName || editingPayment.payerName,
-        payerPhone: payerPhone || editingPayment.payerPhone,
+        payerName,
+        payerPhone,
+        momoTransactionId: transactionRef,
         notes
       };
       SchoolStore.updateFeePayment(updated);
-      setIsPaymentModalOpen(false);
-      setActiveReceipt(updated);
+      toast.success(`Payment voucher updated for ${selectedStudentForPayment.fullName}`);
     } else {
       const receiptNo = `LIS-REC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-      const now = new Date();
-      const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-
       const newPayment: FeePayment = {
         id: `pay-${Date.now()}`,
-        receiptNo,
+        receiptNumber: receiptNo,
         studentId: selectedStudentForPayment.id,
         studentName: selectedStudentForPayment.fullName,
-        classId: selectedStudentForPayment.classId,
         className: selectedStudentForPayment.className,
-        term: activeTerm,
-        academicYear: '2025/2026',
         amountPaid: Number(payAmount),
         paymentMethod: payMethod,
-        transactionRef: transactionRef || `REF-${Date.now()}`,
-        date: formattedDate,
-        receivedBy: 'Admin Accounts',
-        payerName: payerName || selectedStudentForPayment.parentName,
-        payerPhone: payerPhone || selectedStudentForPayment.parentPhone,
+        momoTransactionId: transactionRef,
+        payerName,
+        payerPhone,
+        term: activeTerm,
+        academicYear: '2025/2026',
+        paymentDate: new Date().toISOString().split('T')[0],
+        recordedBy: 'Accounts Officer (Mrs. Joyce Frimpong)',
+        status: 'Completed',
         notes
       };
-
       SchoolStore.addFeePayment(newPayment);
-      setIsPaymentModalOpen(false);
+      toast.success(`Official Receipt ${receiptNo} issued!`, 'Payment Recorded');
       setActiveReceipt(newPayment);
     }
+
+    setIsPaymentModalOpen(false);
   };
 
   const handleDeletePayment = (paymentId: string) => {
-    if (window.confirm('Are you sure you want to remove this payment record? The student arrears balance will be recalculated.')) {
+    if (window.confirm('Are you sure you want to void and delete this payment record from the Accounts Ledger?')) {
       SchoolStore.deleteFeePayment(paymentId);
+      toast.info('Payment record voided from ledger');
     }
   };
 
+  const filteredStudents = students.filter(stu => {
+    const matchesSearch = stu.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          stu.studentId.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesClass = selectedClass === 'all' || stu.classId === selectedClass;
+    return matchesSearch && matchesClass;
+  });
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
-      {/* Title & Fee Structures Summary */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--brand-primary)' }}>
-            School Fees & Arrears Management
-          </h2>
-          <p style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem' }}>
-            Track fee billing, update recorded payments, resolve arrears balances, and generate official receipts in GH₵
-          </p>
-        </div>
-      </div>
-
-      {/* Trimester Fee Schedules (Ghanaian Basic Breakdown) */}
+      {/* Official Tariff Schedule Cards */}
       <div className="card">
         <div className="card-header">
-          <div className="card-title">
-            <CreditCard size={18} color="var(--brand-gold)" />
-            <span>Approved Trimester Fee Structures ({activeTerm})</span>
+          <div>
+            <div className="card-title">
+              <CreditCard size={18} color="var(--brand-primary)" />
+              <span>Approved Ghanaian Basic Education Fee Tariffs ({activeTerm})</span>
+            </div>
+            <div className="card-subtitle">
+              Mandatory Breakdown: Tuition, Canteen/Feeding, Facility Levy, TLMs & PTA Dues (GH₵)
+            </div>
           </div>
-          <span className="badge badge-gold">NaCCA Standard Level Tariffs</span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
           {feeStructures.map((f) => (
-            <div 
+            <div
               key={f.id}
-              style={{ 
-                backgroundColor: 'var(--bg-subtle)', 
-                padding: '1.15rem', 
+              style={{
+                backgroundColor: 'var(--bg-subtle)',
                 borderRadius: 'var(--radius-md)',
+                padding: '1.25rem',
                 border: '1px solid var(--border-light)'
               }}
             >
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--brand-primary)' }}>
                 {f.classLevel}
               </div>
               <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#15803D', margin: '0.25rem 0' }}>
@@ -219,12 +224,23 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
           <div>
             <div className="card-title">
               <Building size={18} color="var(--brand-primary)" />
-              <span>Student Fee Ledger & Payment Register</span>
+              <span>Student Fee Ledger & Debtors Aging</span>
             </div>
             <div className="card-subtitle">Showing {filteredStudents.length} students enrolled</div>
           </div>
 
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <button
+              onClick={() => {
+                exportDebtorsToCSV(students, feePayments, feeStructures, activeTerm);
+                toast.success('Debtors Aging Report CSV exported');
+              }}
+              className="btn btn-secondary"
+            >
+              <Download size={15} />
+              <span>Export Debtors (CSV)</span>
+            </button>
+
             <div style={{ position: 'relative' }}>
               <Search size={16} color="var(--text-tertiary)" style={{ position: 'absolute', left: '10px', top: '10px' }} />
               <input
@@ -292,11 +308,11 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
                       <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                         <button
                           onClick={() => handleOpenPayment(stu)}
-                          className="btn btn-primary btn-sm"
-                          title="Record / Add Payment"
+                          className="btn btn-gold btn-sm"
+                          title="Record / Add Fee Payment"
                         >
-                          <PlusCircle size={14} />
-                          <span>Pay</span>
+                          <PlusCircle size={13} />
+                          <span>Record Fee</span>
                         </button>
                         {fee.payments.length > 0 && (
                           <>
@@ -310,9 +326,10 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
                             <button
                               onClick={() => setActiveReceipt(fee.payments[0])}
                               className="btn btn-secondary btn-sm"
-                              title="View Last Receipt"
+                              title="View Official Receipt"
                             >
                               <FileCheck size={13} />
+                              <span>Receipt</span>
                             </button>
                             <button
                               onClick={() => handleDeletePayment(fee.payments[0].id)}
@@ -398,23 +415,23 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
                 className="form-input"
                 value={transactionRef}
                 onChange={(e) => setTransactionRef(e.target.value)}
-                placeholder="e.g. MM-TXN-98421098"
+                placeholder="e.g. 192837465012 or GCB-DEP-883"
               />
             </div>
 
             <div className="form-group" style={{ gridColumn: 'span 2' }}>
-              <label className="form-label">Payment Remarks / Breakdown</label>
+              <label className="form-label">Bursar Notes / Audit Comments</label>
               <input
                 type="text"
                 className="form-input"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="e.g. Term 2 Part Payment (Tuition & Feeding)"
+                placeholder="Optional notes..."
               />
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.25rem' }}>
             <button
               type="button"
               onClick={() => setIsPaymentModalOpen(false)}
@@ -427,108 +444,18 @@ export const FeesManager: React.FC<FeesManagerProps> = ({
               className="btn btn-gold"
             >
               <CheckCircle2 size={16} />
-              <span>{editingPayment ? 'Save Payment Adjustment' : 'Confirm & Issue Official Receipt'}</span>
+              <span>{editingPayment ? 'Save Adjustment' : 'Issue Official Receipt'}</span>
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* Official Printable Fee Receipt Modal */}
-      <Modal
-        isOpen={!!activeReceipt}
+      {/* Printable Receipt Modal */}
+      <FeeReceiptModal
+        isOpen={Boolean(activeReceipt)}
         onClose={() => setActiveReceipt(null)}
-        title="Official School Fee Payment Receipt"
-        subtitle="Livine International School Bursary & Accounts Department"
-        size="large"
-        footer={
-          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
-              Authorized by Livine Accounts Office • Accra, Ghana
-            </span>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <button
-                onClick={() => window.print()}
-                className="btn btn-primary"
-              >
-                <Printer size={16} />
-                <span>Print Official Receipt</span>
-              </button>
-              <button
-                onClick={() => setActiveReceipt(null)}
-                className="btn btn-secondary"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        }
-      >
-        {activeReceipt && (
-          <div className="printable-area" style={{ padding: '1rem', backgroundColor: '#FFF' }}>
-            <div style={{ border: '2px solid #0F2537', padding: '1.5rem', borderRadius: 'var(--radius-md)', position: 'relative' }}>
-              <div style={{ textAlign: 'center', borderBottom: '2px solid #0F2537', paddingBottom: '1rem', marginBottom: '1.25rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                  <School size={28} color="#0F2537" />
-                  <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F2537', textTransform: 'uppercase' }}>
-                    {SCHOOL_INFO.name}
-                  </h2>
-                </div>
-                <p style={{ fontStyle: 'italic', fontSize: '0.8rem', color: '#C88719', fontWeight: 700 }}>
-                  "{SCHOOL_INFO.motto}"
-                </p>
-                <p style={{ fontSize: '0.75rem', color: '#475569' }}>
-                  {SCHOOL_INFO.address} • Digital: {SCHOOL_INFO.digitalAddress} • Tel: {SCHOOL_INFO.phone}
-                </p>
-                <div style={{ marginTop: '0.5rem', display: 'inline-block', backgroundColor: '#0F2537', color: '#FFF', padding: '0.2rem 0.8rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 700 }}>
-                  OFFICIAL SCHOOL FEES RECEIPT
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem', fontSize: '0.875rem' }}>
-                <div>
-                  <div><strong style={{ color: '#64748B' }}>Receipt Number:</strong> <span style={{ color: '#0F2537', fontWeight: 800 }}>{activeReceipt.receiptNo}</span></div>
-                  <div><strong style={{ color: '#64748B' }}>Student Name:</strong> <span style={{ fontWeight: 700 }}>{activeReceipt.studentName}</span></div>
-                  <div><strong style={{ color: '#64748B' }}>Class:</strong> {activeReceipt.className}</div>
-                  <div><strong style={{ color: '#64748B' }}>Academic Term:</strong> {activeReceipt.term} ({activeReceipt.academicYear})</div>
-                </div>
-                <div>
-                  <div><strong style={{ color: '#64748B' }}>Date & Time:</strong> {activeReceipt.date}</div>
-                  <div><strong style={{ color: '#64748B' }}>Payment Method:</strong> {activeReceipt.paymentMethod}</div>
-                  <div><strong style={{ color: '#64748B' }}>Transaction Ref:</strong> {activeReceipt.transactionRef}</div>
-                  <div><strong style={{ color: '#64748B' }}>Payer:</strong> {activeReceipt.payerName} ({activeReceipt.payerPhone})</div>
-                </div>
-              </div>
-
-              <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', padding: '1rem', borderRadius: 'var(--radius-sm)', marginBottom: '1.25rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '1rem', fontWeight: 700, color: '#0F2537' }}>AMOUNT RECEIVED (GHANA CEDIS):</span>
-                  <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#15803D' }}>{formatGHS(activeReceipt.amountPaid)}</span>
-                </div>
-                {activeReceipt.notes && (
-                  <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '0.35rem' }}>
-                    Note: {activeReceipt.notes}
-                  </div>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '1.5rem', paddingTop: '1rem' }}>
-                <div>
-                  <div style={{ borderBottom: '1px solid #334155', width: '180px', height: '30px', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', fontFamily: 'cursive', fontSize: '1.1rem' }}>
-                    Rev. Livingstone
-                  </div>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569', marginTop: '0.2rem' }}>
-                    Authorized Bursar / Cashier
-                  </div>
-                </div>
-
-                <div className="official-stamp" style={{ width: '90px', height: '90px', fontSize: '0.6rem' }}>
-                  LIVINE INT. SCHOOL<br />PAID & VERIFIED<br />ACCOUNTS
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </Modal>
+        payment={activeReceipt}
+      />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { UserRole, AcademicTerm } from '../../types';
+import { UserRole, AcademicTerm, Teacher, Parent, Student } from '../../types';
 import { SCHOOL_INFO } from '../../data/mockData';
 import { 
   Building2, 
@@ -10,7 +10,9 @@ import {
   Sparkles,
   MapPin,
   ChevronDown,
-  Check
+  Check,
+  LogOut,
+  User
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -18,13 +20,21 @@ interface NavbarProps {
   onRoleChange: (role: UserRole) => void;
   activeTerm: AcademicTerm;
   onTermChange: (term: AcademicTerm) => void;
+  currentTeacher?: Teacher;
+  currentParent?: Parent;
+  currentStudent?: Student;
+  onLogout?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentRole,
   onRoleChange,
   activeTerm,
-  onTermChange
+  onTermChange,
+  currentTeacher,
+  currentParent,
+  currentStudent,
+  onLogout
 }) => {
   const [isTermDropdownOpen, setIsTermDropdownOpen] = useState(false);
   const termDropdownRef = useRef<HTMLDivElement>(null);
@@ -52,6 +62,15 @@ export const Navbar: React.FC<NavbarProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Display name for active logged-in entity
+  const getActiveUserName = () => {
+    if (currentRole === 'proprietor') return 'Rev. Dr. E. K. Livine (Proprietor)';
+    if (currentRole === 'teacher') return currentTeacher?.fullName || 'Teacher Faculty';
+    if (currentRole === 'parent') return currentParent?.fullName || 'Parent Account';
+    if (currentRole === 'student') return currentStudent?.fullName || 'Student Account';
+    return 'User Account';
+  };
 
   return (
     <header className="top-header no-print">
@@ -86,7 +105,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Right side: Custom Academic Term Dropdown & Role Switcher */}
+      {/* Right side: Academic Term Selector, Role Switcher & User Profile Logout */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
         {/* Custom Academic Term Dropdown */}
         <div ref={termDropdownRef} style={{ position: 'relative' }}>
@@ -196,6 +215,35 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>{r.label}</span>
             </button>
           ))}
+        </div>
+
+        {/* User Session Profile & Logout */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', borderLeft: '1px solid #E2E8F0', paddingLeft: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#0F2537', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 800 }}>
+              {getActiveUserName().split(' ').map(n => n[0]).slice(0, 2).join('')}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0F2537', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {getActiveUserName()}
+              </span>
+              <span style={{ fontSize: '0.65rem', color: '#15803D', fontWeight: 700 }}>
+                ● Online
+              </span>
+            </div>
+          </div>
+
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="btn btn-secondary btn-sm"
+              title="Sign Out / Switch Profile"
+              style={{ padding: '0.35rem 0.6rem', borderRadius: 'var(--radius-full)', marginLeft: '0.2rem' }}
+            >
+              <LogOut size={13} />
+              <span>Logout</span>
+            </button>
+          )}
         </div>
       </div>
     </header>

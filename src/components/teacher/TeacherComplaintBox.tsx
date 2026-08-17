@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { AnonymousComplaint } from '../../types';
 import { SchoolStore } from '../../data/storage';
+import { WhistleblowerTracker } from '../common/WhistleblowerTracker';
+import { toast } from '../common/Toast';
 import {
   MessageSquareWarning,
   ShieldCheck,
@@ -20,6 +22,8 @@ export const TeacherComplaintBox: React.FC = () => {
   const [severity, setSeverity] = useState<AnonymousComplaint['severity']>('Medium');
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
 
+  const complaints = SchoolStore.getComplaints();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!subject || !message) return;
@@ -31,9 +35,11 @@ export const TeacherComplaintBox: React.FC = () => {
     const complaint: AnonymousComplaint = {
       id: `cmp-${Date.now()}`,
       trackingCode,
+      ticketNumber: trackingCode,
       senderType: 'Teacher',
       targetCategory,
       subject,
+      description: message,
       message,
       incidentLocation: incidentLocation || 'Staff Facility / Campus',
       incidentDate: incidentDate || new Date().toISOString().split('T')[0],
@@ -45,6 +51,7 @@ export const TeacherComplaintBox: React.FC = () => {
 
     SchoolStore.addComplaint(complaint);
     setGeneratedCode(trackingCode);
+    toast.success(`Anonymous Grievance Lodged. Ticket: ${trackingCode}`, 'Confidential Case Created');
 
     // Clear form
     setSubject('');
@@ -54,161 +61,176 @@ export const TeacherComplaintBox: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+    <div style={{ maxWidth: '850px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       {/* Title & Privacy Assurance */}
       <div 
         style={{ 
-          background: 'linear-gradient(135deg, #0F2537 0%, #1A364F 100%)', 
+          background: 'linear-gradient(135deg, #0F2537 0%, #17324B 100%)', 
           borderRadius: 'var(--radius-lg)', 
           padding: '1.75rem 2rem', 
           color: '#FFFFFF',
           boxShadow: 'var(--shadow-md)'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
-          <ShieldCheck size={24} color="#F6BC47" />
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#FFFFFF' }}>
-            Anonymous Educator Whistleblower Channel
-          </h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.4rem' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: 'rgba(200, 135, 25, 0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FDE68A' }}>
+            <Lock size={22} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: '1.4rem', color: '#FFFFFF', fontWeight: 800, margin: 0 }}>
+              Educator & Staff Safe-Reporting Box
+            </h2>
+            <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.825rem' }}>
+              100% Anonymous • Direct Disciplinary Oversight by the Proprietor
+            </p>
+          </div>
         </div>
-        <p style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.875rem', lineHeight: 1.5 }}>
-          Your identity is 100% confidential and never attached to this report. Submissions are delivered directly to the Proprietor & Board of Governors for impartial investigation.
-        </p>
+
+        <div style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.9)', backgroundColor: 'rgba(255, 255, 255, 0.08)', padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)', marginTop: '0.75rem' }}>
+          🔒 <strong>Zero Identity Logging:</strong> Your name, staff ID, email, and IP address are never stored. You will receive an encrypted ticket code to track the resolution status.
+        </div>
       </div>
 
-      {generatedCode ? (
-        <div className="card" style={{ textAlign: 'center', padding: '2.5rem 1.5rem', backgroundColor: '#F8FAFC', border: '2px solid #86EFAC' }}>
-          <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#DCFCE7', color: '#15803D', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
-            <CheckCircle2 size={36} />
+      {/* Success Notification with Ticket Code */}
+      {generatedCode && (
+        <div 
+          style={{ 
+            backgroundColor: '#DCFCE7', 
+            border: '2px solid #86EFAC', 
+            borderRadius: 'var(--radius-md)', 
+            padding: '1.25rem 1.5rem',
+            animation: 'fadeIn 0.2s ease-out'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+            <CheckCircle2 size={24} color="#15803D" />
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#166534', margin: 0 }}>
+              Grievance Successfully Lodged Anonymously
+            </h3>
           </div>
-          <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#15803D', marginBottom: '0.5rem' }}>
-            Confidential Grievance Lodged Successfully!
-          </h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', maxWidth: '500px', margin: '0 auto 1.5rem' }}>
-            Your anonymous complaint has been transmitted to the Proprietor. Please save your private tracking code below to follow up if needed:
+
+          <p style={{ fontSize: '0.85rem', color: '#166534', lineHeight: 1.5 }}>
+            Please copy your secret Tracking Reference Code below. You will need this code to check the status of management's investigation and response:
           </p>
 
-          <div style={{ display: 'inline-block', backgroundColor: '#0F2537', color: '#F6BC47', padding: '0.75rem 2rem', borderRadius: 'var(--radius-md)', fontSize: '1.4rem', fontWeight: 800, letterSpacing: '0.1em', marginBottom: '1.5rem' }}>
-            {generatedCode}
-          </div>
-
-          <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.75rem' }}>
+            <div style={{ backgroundColor: '#FFFFFF', padding: '0.65rem 1.25rem', borderRadius: 'var(--radius-sm)', border: '2px dashed #15803D', fontWeight: 800, fontSize: '1.25rem', letterSpacing: '0.05em', color: '#0F2537' }}>
+              {generatedCode}
+            </div>
             <button
-              onClick={() => setGeneratedCode(null)}
-              className="btn btn-secondary"
+              onClick={() => {
+                navigator.clipboard.writeText(generatedCode);
+                toast.success('Ticket code copied to clipboard!');
+              }}
+              className="btn btn-primary btn-sm"
             >
-              <span>Submit Another Grievance</span>
+              Copy Code
             </button>
           </div>
         </div>
-      ) : (
-        <div className="card">
-          <div className="card-header">
-            <div className="card-title">
-              <Lock size={18} color="var(--brand-gold)" />
-              <span>Submit Identity-Protected Teacher Grievance</span>
-            </div>
-            <span className="badge badge-gold">Encrypted & Confidential</span>
+      )}
+
+      {/* Complaint Submission Form */}
+      <div className="card">
+        <div className="card-header">
+          <div className="card-title">
+            <MessageSquareWarning size={18} color="var(--brand-gold)" />
+            <span>Lodge Confidential Staff Report</span>
           </div>
+        </div>
 
-          <form onSubmit={handleSubmit}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div className="form-group">
-                <label className="form-label">Grievance Category *</label>
-                <select
-                  className="form-select"
-                  value={targetCategory}
-                  onChange={(e) => setTargetCategory(e.target.value as any)}
-                  required
-                >
-                  <option value="Staff Welfare & Working Conditions">Staff Welfare & Working Conditions</option>
-                  <option value="Academic & Classroom Concerns">Teaching Materials & Laboratory Reagents</option>
-                  <option value="Infrastructure, Washrooms & Safety">Infrastructure, Safety & Washrooms</option>
-                  <option value="Teacher / Staff Conduct">Administrative / Leadership Feedback</option>
-                  <option value="General Improvement Suggestion">General School Improvement Suggestion</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Urgency / Severity Level *</label>
-                <select
-                  className="form-select"
-                  value={severity}
-                  onChange={(e) => setSeverity(e.target.value as any)}
-                  required
-                >
-                  <option value="Low">Low — Routine suggestion or inquiry</option>
-                  <option value="Medium">Medium — Affects teaching efficiency</option>
-                  <option value="High">High — Urgent attention required</option>
-                  <option value="Critical">Critical — Immediate safety/ethical hazard</option>
-                </select>
-              </div>
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+            <div className="form-group">
+              <label className="form-label">Category of Grievance *</label>
+              <select
+                className="form-select"
+                value={targetCategory}
+                onChange={(e) => setTargetCategory(e.target.value as any)}
+              >
+                <option value="Staff Welfare & Working Conditions">Staff Welfare & Working Conditions</option>
+                <option value="Teaching Learning Materials (TLMs)">Lack of Teaching / Lab Materials</option>
+                <option value="School Infrastructure & Facilities">School Infrastructure / Washrooms</option>
+                <option value="Administrative Policy / Disciplinary">Administrative Fairness</option>
+                <option value="Harassment / Unethical Conduct">Harassment / Ethics Violation</option>
+                <option value="Other School Operational Concerns">Other Operational Concern</option>
+              </select>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Subject / Brief Headline *</label>
+              <label className="form-label">Urgency / Severity Level *</label>
+              <select
+                className="form-select"
+                value={severity}
+                onChange={(e) => setSeverity(e.target.value as any)}
+              >
+                <option value="Low">Low Priority (Routine Observation)</option>
+                <option value="Medium">Medium Priority (Needs Attention)</option>
+                <option value="High">High Priority (Urgent Resolution)</option>
+                <option value="Critical">Critical (Immediate Proprietor Intervention)</option>
+              </select>
+            </div>
+
+            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+              <label className="form-label">Subject / Short Summary of Grievance *</label>
               <input
                 type="text"
                 className="form-input"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                placeholder="e.g. Science laboratory lacks essential reagents for Trimester 2 practicals"
+                placeholder="e.g. Broken science lab microscope or delays in printing trimester exam scripts"
                 required
               />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div className="form-group">
-                <label className="form-label">Location / Department</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={incidentLocation}
-                  onChange={(e) => setIncidentLocation(e.target.value)}
-                  placeholder="e.g. Science Laboratory / Staff Common Room"
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Approximate Date of Incident</label>
-                <input
-                  type="date"
-                  className="form-input"
-                  value={incidentDate}
-                  onChange={(e) => setIncidentDate(e.target.value)}
-                />
-              </div>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Detailed Description of Grievance *</label>
-              <textarea
-                className="form-textarea"
-                style={{ minHeight: '140px' }}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Provide objective, specific details regarding this matter. Remember not to write your own name if you wish to remain anonymous."
-                required
+              <label className="form-label">Specific Campus Location (Optional)</label>
+              <input
+                type="text"
+                className="form-input"
+                value={incidentLocation}
+                onChange={(e) => setIncidentLocation(e.target.value)}
+                placeholder="e.g. Science Lab / Block B Staff Room"
               />
             </div>
 
-            <div style={{ backgroundColor: '#F8FAFC', padding: '0.85rem 1rem', borderRadius: 'var(--radius-sm)', border: '1px solid #E2E8F0', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
-              <Lock size={16} color="var(--brand-gold)" />
-              <span>This system does NOT record IP addresses, email accounts, or browser cookies with your grievance.</span>
+            <div className="form-group">
+              <label className="form-label">Date of Occurrence (Optional)</label>
+              <input
+                type="date"
+                className="form-input"
+                value={incidentDate}
+                onChange={(e) => setIncidentDate(e.target.value)}
+              />
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button
-                type="submit"
-                className="btn btn-gold btn-lg"
-              >
-                <Send size={16} />
-                <span>Submit Anonymous Report</span>
-              </button>
+            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+              <label className="form-label">Detailed Description & Evidence *</label>
+              <textarea
+                className="form-textarea"
+                style={{ minHeight: '120px' }}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Describe the issue in detail. Do NOT include your name or identifying details if you wish to remain 100% anonymous..."
+                required
+              />
             </div>
-          </form>
-        </div>
-      )}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.25rem' }}>
+            <button
+              type="submit"
+              className="btn btn-gold btn-lg"
+            >
+              <Send size={16} />
+              <span>Submit Anonymous Report</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Case Tracker Component */}
+      <WhistleblowerTracker complaints={complaints} />
     </div>
   );
 };

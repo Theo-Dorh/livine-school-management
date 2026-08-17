@@ -21,6 +21,8 @@ import { SchoolStore } from './data/storage';
 // Common Components
 import { Navbar } from './components/common/Navbar';
 import { Sidebar } from './components/common/Sidebar';
+import { ToastContainer, toast } from './components/common/Toast';
+import { LoginScreen } from './components/auth/LoginScreen';
 
 // Proprietor Domain Hubs
 import { ProprietorDashboard } from './components/proprietor/ProprietorDashboard';
@@ -49,7 +51,8 @@ import { LearningMaterials } from './components/student/LearningMaterials';
 import { StudentComplaintBox } from './components/student/StudentComplaintBox';
 
 export function App() {
-  // Global Navigation State
+  // Authentication & Session State
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [currentRole, setCurrentRole] = useState<UserRole>('proprietor');
   const [activeCategory, setActiveCategory] = useState<string>('dashboard');
   const [activeTerm, setActiveTerm] = useState<AcademicTerm>(SchoolStore.getActiveTerm());
@@ -114,10 +117,31 @@ export function App() {
     return () => unsubscribe();
   }, []);
 
+  // Handle Login
+  const handleLoginSuccess = (role: UserRole, userContext?: { teacher?: Teacher; parent?: Parent; student?: Student }) => {
+    setIsAuthenticated(true);
+    setCurrentRole(role);
+    setActiveCategory('dashboard');
+    if (userContext?.teacher) setCurrentTeacher(userContext.teacher);
+    if (userContext?.parent) {
+      setCurrentParent(userContext.parent);
+      const firstWard = students.find(s => userContext.parent?.wards?.includes(s.id)) || students[0];
+      if (firstWard) setSelectedWard(firstWard);
+    }
+    if (userContext?.student) setCurrentStudent(userContext.student);
+  };
+
+  // Handle Logout
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    toast.info('You have safely signed out of Livine International School portal.');
+  };
+
   // Handle Role Switch
   const handleRoleChange = (role: UserRole) => {
     setCurrentRole(role);
     setActiveCategory('dashboard');
+    toast.info(`Switched active view to ${role.toUpperCase()} portal`);
   };
 
   // Handle Navigation
@@ -129,6 +153,7 @@ export function App() {
   const handleTermChange = (term: AcademicTerm) => {
     setActiveTerm(term);
     SchoolStore.setActiveTerm(term);
+    toast.success(`Active academic period set to ${term}`);
   };
 
   // Count unread complaints for badge
@@ -137,8 +162,26 @@ export function App() {
   // Wards of current logged in parent
   const parentWards = students.filter(s => currentParent.wards?.includes(s.id)) || [students[0]];
 
+  // If not authenticated, render the login portal
+  if (!isAuthenticated) {
+    return (
+      <>
+        <ToastContainer />
+        <LoginScreen
+          onLoginSuccess={handleLoginSuccess}
+          teachers={teachers}
+          parents={parents}
+          students={students}
+        />
+      </>
+    );
+  }
+
   return (
     <div className="app-shell">
+      {/* Toast Notification Container */}
+      <ToastContainer />
+
       {/* Collapsible & Hover-Expandable Sidebar with Livine International School at Top */}
       <Sidebar
         currentRole={currentRole}
@@ -151,7 +194,7 @@ export function App() {
         setIsPinned={setIsSidebarPinned}
       />
 
-      {/* Main Content Area (Proper flex sibling - Never obscured) */}
+      {/* Main Content Area */}
       <div className="main-content-wrapper">
         {/* Top Navbar */}
         <Navbar
@@ -159,6 +202,10 @@ export function App() {
           onRoleChange={handleRoleChange}
           activeTerm={activeTerm}
           onTermChange={handleTermChange}
+          currentTeacher={currentTeacher}
+          currentParent={currentParent}
+          currentStudent={currentStudent}
+          onLogout={handleLogout}
         />
 
         {/* Dynamic Content Workspace */}
@@ -212,7 +259,7 @@ export function App() {
                 />
               )}
 
-              {/* Finance & Accounts Hub (Accounting Principles, Receivables, Payroll, Vouchers, P&L) */}
+              {/* Finance & Accounts Hub (GAAP Accounting, Receivables, Payroll, Vouchers, P&L) */}
               {activeCategory === 'finance' && (
                 <FinanceHub
                   students={students}

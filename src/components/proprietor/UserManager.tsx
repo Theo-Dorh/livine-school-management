@@ -3,6 +3,8 @@ import { Student, Teacher, ClassRoom, Subject, Parent } from '../../types';
 import { Modal } from '../common/Modal';
 import { SchoolStore } from '../../data/storage';
 import { formatGHS } from '../../utils/currency';
+import { exportStudentsToCSV, exportBeceCandidatesToCSV } from '../../utils/export';
+import { toast } from '../common/Toast';
 import {
   Users,
   GraduationCap,
@@ -15,7 +17,9 @@ import {
   CheckCircle2,
   Phone,
   Mail,
-  Home
+  Home,
+  Download,
+  FileSpreadsheet
 } from 'lucide-react';
 
 interface UserManagerProps {
@@ -119,6 +123,7 @@ export const UserManager: React.FC<UserManagerProps> = ({
         house: stuHouse
       };
       SchoolStore.updateStudent(updated);
+      toast.success(`Pupil ${stuFullName} updated successfully!`);
     } else {
       const studentId = `LIS-2026-${Math.floor(1000 + Math.random() * 9000)}`;
       const newStu: Student = {
@@ -144,6 +149,7 @@ export const UserManager: React.FC<UserManagerProps> = ({
         promotionDecision: 'Pending Assessment'
       };
       SchoolStore.addStudent(newStu);
+      toast.success(`Pupil ${stuFullName} enrolled with ID ${studentId}!`);
     }
     setIsStudentModalOpen(false);
   };
@@ -151,6 +157,7 @@ export const UserManager: React.FC<UserManagerProps> = ({
   const handleDeleteStudent = (id: string, name: string) => {
     if (window.confirm(`Are you sure you want to remove student "${name}" from the school database?`)) {
       SchoolStore.deleteStudent(id);
+      toast.info(`Pupil ${name} removed from registry.`);
     }
   };
 
@@ -213,6 +220,7 @@ export const UserManager: React.FC<UserManagerProps> = ({
         ssnitNumber: tchSsnitNo
       };
       SchoolStore.updateTeacher(updated);
+      toast.success(`Educator ${tchFullName} record updated!`);
     } else {
       const staffId = `LIS-STF-${String(teachers.length + 1).padStart(3, '0')}`;
       const newTch: Teacher = {
@@ -238,6 +246,7 @@ export const UserManager: React.FC<UserManagerProps> = ({
         photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80'
       };
       SchoolStore.addTeacher(newTch);
+      toast.success(`Teacher ${tchFullName} appointed with Staff ID ${staffId}!`);
     }
     setIsTeacherModalOpen(false);
   };
@@ -245,6 +254,7 @@ export const UserManager: React.FC<UserManagerProps> = ({
   const handleDeleteTeacher = (id: string, name: string) => {
     if (window.confirm(`Are you sure you want to remove teacher "${name}" from the staff roster?`)) {
       SchoolStore.deleteTeacher(id);
+      toast.info(`Teacher ${name} removed from faculty.`);
     }
   };
 
@@ -277,13 +287,37 @@ export const UserManager: React.FC<UserManagerProps> = ({
             </p>
           </div>
 
-          <button
-            onClick={() => handleOpenStudentModal()}
-            className="btn btn-gold"
-          >
-            <UserPlus size={16} />
-            <span>Enroll New Student</span>
-          </button>
+          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => {
+                exportStudentsToCSV(students);
+                toast.success('Pupil Registry CSV downloaded');
+              }}
+              className="btn btn-secondary"
+            >
+              <Download size={15} />
+              <span>Export CSV</span>
+            </button>
+
+            <button
+              onClick={() => {
+                exportBeceCandidatesToCSV(students);
+                toast.success('BECE Registration Candidates CSV exported');
+              }}
+              className="btn btn-secondary"
+            >
+              <FileSpreadsheet size={15} />
+              <span>BECE Candidates</span>
+            </button>
+
+            <button
+              onClick={() => handleOpenStudentModal()}
+              className="btn btn-gold"
+            >
+              <UserPlus size={16} />
+              <span>Enroll New Student</span>
+            </button>
+          </div>
         </div>
 
         {/* Filter & Search Bar */}
