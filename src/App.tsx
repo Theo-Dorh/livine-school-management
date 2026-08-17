@@ -210,6 +210,7 @@ export function App() {
           currentStudent={currentStudent}
           onLogout={handleLogout}
           onToggleMobileMenu={() => setIsMobileMenuOpen(prev => !prev)}
+          onNavigateHome={() => setActiveCategory('dashboard')}
         />
 
         {/* Dynamic Content Workspace */}

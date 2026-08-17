@@ -17,9 +17,9 @@ import {
 export const SCHOOL_INFO = {
   name: 'Livine International School',
   motto: 'Excellence in Knowledge, Integrity in Character',
-  address: 'Plot 42, Ring Road East / East Legon Campus, Accra, Ghana',
-  campus: 'East Legon Campus, Accra',
-  digitalAddress: 'GA-492-3810',
+  address: 'Plot 15, Lakeside Main Road, Ashale Botwe Lakeside, Accra, Ghana',
+  campus: 'Ashale Botwe Lakeside Campus, Accra',
+  digitalAddress: 'GD-184-9023',
   phone: '+233 (0) 302 789 450 / +233 (0) 244 123 456',
   email: 'info@livineinternationalschool.edu.gh',
   website: 'www.livineinternationalschool.edu.gh',
@@ -33,10 +33,30 @@ export const SCHOOL_INFO = {
   },
   nextTermBegins: '12th May, 2026',
   headTeacherName: 'Dr. (Mrs.) Joyce Adom-Kwarteng',
-  proprietorName: 'Rev. Emmanuel & Dr. Linda Livingstone'
+  proprietorName: 'Mr. Philip Dorh & Mrs. Doris Dorh',
+  proprietors: [
+    { name: 'Mr. Philip Dorh', title: 'Co-Proprietor & Managing Director' },
+    { name: 'Mrs. Doris Dorh', title: 'Co-Proprietor & Executive Director' }
+  ]
 };
 
 export const INITIAL_SUPER_USERS: SuperUser[] = [
+  {
+    id: 'su-00',
+    fullName: 'Mr. Quaye',
+    email: 'mr.quaye@livineinternationalschool.edu.gh',
+    roleTitle: 'Super Administrator & Operations Lead',
+    permissions: {
+      canManageFees: true,
+      canManagePayroll: true,
+      canManageUsers: true,
+      canManageSubjects: true,
+      canManageCourseContent: true,
+      canPromoteStudents: true
+    },
+    dateCreated: '2024-01-10',
+    status: 'Active'
+  },
   {
     id: 'su-01',
     fullName: 'Dr. (Mrs.) Joyce Adom-Kwarteng',
@@ -127,7 +147,7 @@ export const INITIAL_PARENTS: Parent[] = [
     phone: '+233 24 498 7654',
     alternatePhone: '+233 20 811 2233',
     occupation: 'Senior Civil Engineer (VRA)',
-    residentialAddress: 'House No. 14, Mango Tree Avenue, East Legon Hills, Accra',
+    residentialAddress: 'House No. 14, Lakeside Estate, Ashale Botwe, Accra',
     wards: ['stu-01', 'stu-02']
   },
   {
@@ -173,7 +193,7 @@ export const INITIAL_STUDENTS: Student[] = [
     parentName: 'Mr. David Kwabena Mensah',
     parentPhone: '+233 24 498 7654',
     parentEmail: 'david.mensah@ghanatel.com.gh',
-    residentialAddress: 'House No. 14, Mango Tree Avenue, East Legon Hills, Accra',
+    residentialAddress: 'House No. 14, Lakeside Estate, Ashale Botwe, Accra',
     hometown: 'Mampong, Ashanti Region',
     admissionDate: '2023-09-10',
     status: 'Active',
@@ -198,7 +218,7 @@ export const INITIAL_STUDENTS: Student[] = [
     parentName: 'Mr. David Kwabena Mensah',
     parentPhone: '+233 24 498 7654',
     parentEmail: 'david.mensah@ghanatel.com.gh',
-    residentialAddress: 'House No. 14, Mango Tree Avenue, East Legon Hills, Accra',
+    residentialAddress: 'House No. 14, Lakeside Estate, Ashale Botwe, Accra',
     hometown: 'Mampong, Ashanti Region',
     admissionDate: '2024-09-08',
     status: 'Active',
@@ -544,7 +564,7 @@ export const INITIAL_FEE_PAYMENTS: FeePayment[] = [
     paymentMethod: 'MTN Mobile Money',
     transactionRef: 'MM-TXN-9823746102',
     date: '2026-01-15 10:24 AM',
-    receivedBy: 'Admin Accounts (Livingstone)',
+    receivedBy: 'Admin Accounts (Mr. Quaye)',
     payerName: 'Mr. David Kwabena Mensah',
     payerPhone: '+233 24 498 7654',
     notes: 'Full payment for Term 2 (Tuition, Feeding, ICT & Bus)'
@@ -1093,7 +1113,7 @@ export const INITIAL_EXPENSES: ExpenseRecord[] = [
     date: '2026-03-02',
     paymentMethod: 'Mobile Money',
     vendorOrRecipient: 'Electricity Company of Ghana (ECG)',
-    recordedBy: 'Proprietor (Rev. Livingstone)',
+    recordedBy: 'Proprietor (Mr. Philip Dorh)',
     description: 'Bulk prepaid electricity recharge for academic block, air conditioners and ICT server room.'
   },
   {
@@ -1116,7 +1136,7 @@ export const INITIAL_EXPENSES: ExpenseRecord[] = [
     amount: 4800.00,
     date: '2026-03-10',
     paymentMethod: 'Cash',
-    vendorOrRecipient: 'GOIL Service Station (East Legon)',
+    vendorOrRecipient: 'GOIL Service Station (Ashale Botwe)',
     recordedBy: 'Transport Manager',
     description: 'Fuel coupons and brake pad replacement for Toyota Coaster & HiAce buses.'
   },

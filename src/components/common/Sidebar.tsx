@@ -108,23 +108,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Top Brand Anchor */}
-        <div className="sidebar-brand-container">
-          <div className="school-logo-crest">
+        {/* Top Brand Anchor - Clickable to return to Home / Landing Dashboard */}
+        <div 
+          className="sidebar-brand-container"
+          onClick={() => handleItemClick('dashboard')}
+          style={{ cursor: 'pointer' }}
+          title="Return to Home / Overview Dashboard"
+        >
+          <div className="school-logo-crest" title="Return to Home Dashboard">
             <School size={22} />
           </div>
 
           {isExpanded && (
             <div className="school-brand-text" style={{ flex: 1 }}>
               <h1 title={SCHOOL_INFO.name}>{SCHOOL_INFO.name}</h1>
-              <p>East Legon, Accra</p>
+              <p>Ashale Botwe Lakeside</p>
             </div>
           )}
 
           {/* Close button visible on mobile drawer */}
           {isMobileOpen && onCloseMobile && (
             <button
-              onClick={onCloseMobile}
+              onClick={(e) => {
+                e.stopPropagation();
+                onCloseMobile();
+              }}
               className="sidebar-mobile-close-btn"
               aria-label="Close navigation"
             >

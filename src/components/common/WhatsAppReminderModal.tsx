@@ -122,7 +122,7 @@ You are cordially invited to the *Trimester General PTA Meeting* of Livine Inter
 
 📅 *Date:* Saturday, 21st March 2026
 ⏰ *Time:* 9:00 AM Prompt
-📍 *Venue:* School Main Assembly Hall (East Legon Campus)
+📍 *Venue:* School Main Assembly Hall (Ashale Botwe Lakeside Campus)
 🎯 *Agenda:* Standards-Based NaCCA Curriculum implementation, BECE readiness, and facility upgrades.
 
 Your presence and constructive contributions are highly valued.

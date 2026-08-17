@@ -52,7 +52,7 @@ export const UserManager: React.FC<UserManagerProps> = ({
   const [stuParentName, setStuParentName] = useState('');
   const [stuParentPhone, setStuParentPhone] = useState('+233 24 000 0000');
   const [stuParentEmail, setStuParentEmail] = useState('');
-  const [stuAddress, setStuAddress] = useState('East Legon, Accra');
+  const [stuAddress, setStuAddress] = useState('Ashale Botwe Lakeside, Accra');
   const [stuHometown, setStuHometown] = useState('Kumasi, Ashanti Region');
   const [stuHouse, setStuHouse] = useState<Student['house']>('Kwame Nkrumah');
 
@@ -96,7 +96,7 @@ export const UserManager: React.FC<UserManagerProps> = ({
       setStuParentName('');
       setStuParentPhone('+233 24 000 0000');
       setStuParentEmail('');
-      setStuAddress('East Legon, Accra');
+      setStuAddress('Ashale Botwe Lakeside, Accra');
       setStuHometown('Accra, Greater Accra');
       setStuHouse('Kwame Nkrumah');
     }
@@ -534,7 +534,7 @@ export const UserManager: React.FC<UserManagerProps> = ({
                   className="form-input"
                   value={stuAddress}
                   onChange={(e) => setStuAddress(e.target.value)}
-                  placeholder="e.g. House No. 12, East Legon Hills, Accra"
+                  placeholder="e.g. House No. 12, Lakeside Estate, Ashale Botwe, Accra"
                 />
               </div>
             </div>

@@ -69,7 +69,7 @@ The application provides four customized user environments with strict role-base
 | Portal Role | Primary Identifier | Password | Default Demo Account |
 | :--- | :--- | :--- | :--- |
 | **Parent / Guardian** | **Mobile / WhatsApp Number** (`0244987654`) or Email | `parent123` | *Mr. David Kwabena Mensah* |
-| **Proprietor / Admin** | Email (`admin@livine.edu.gh`) | `admin123` | *Rev. Dr. Livingstone / Principal* |
+| **Proprietor / Admin** | Email (`admin@livine.edu.gh` / `mr.quaye@livineinternationalschool.edu.gh`) | `admin123` | *Mr. Philip Dorh, Mrs. Doris Dorh & Mr. Quaye (Super Admin)* |
 | **Teaching Faculty** | Staff ID (`LIS-STF-001`) or Email | `teacher123` | *Sir Peter Owusu-Ansah (Science Head)* |
 | **Pupil / Student** | Student ID (`LIS-2023-0142`) | `student123` | *Kwame Osei Mensah (JHS 2)* |
 

@@ -23,6 +23,7 @@ interface NavbarProps {
   currentStudent?: Student;
   onLogout?: () => void;
   onToggleMobileMenu?: () => void;
+  onNavigateHome?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -34,7 +35,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentParent,
   currentStudent,
   onLogout,
-  onToggleMobileMenu
+  onToggleMobileMenu,
+  onNavigateHome
 }) => {
   const [isTermDropdownOpen, setIsTermDropdownOpen] = useState(false);
   const termDropdownRef = useRef<HTMLDivElement>(null);
@@ -90,6 +92,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <div 
           className="campus-pill"
+          onClick={onNavigateHome}
+          title="Return to Home Dashboard"
           style={{ 
             display: 'inline-flex', 
             alignItems: 'center', 
@@ -100,11 +104,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             padding: '0.4rem 0.85rem', 
             borderRadius: 'var(--radius-full)', 
             border: '1px solid #E2E8F0',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
+            boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
+            cursor: onNavigateHome ? 'pointer' : 'default'
           }}
         >
           <MapPin size={13} color="#C88719" />
-          <span style={{ fontWeight: 600 }}>East Legon, Accra</span>
+          <span style={{ fontWeight: 600 }}>Ashale Botwe Lakeside, Accra</span>
         </div>
       </div>
 

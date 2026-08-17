@@ -75,7 +75,7 @@ export const ExpensesManager: React.FC<ExpensesManagerProps> = ({
       date: new Date().toISOString().split('T')[0],
       paymentMethod,
       vendorOrRecipient: vendorOrRecipient || 'General Vendor',
-      recordedBy: 'Proprietor (Livingstone)',
+      recordedBy: 'Proprietor (Mr. Philip Dorh)',
       description,
       receiptNumber: receiptNumber || `REC-${Date.now()}`
     };

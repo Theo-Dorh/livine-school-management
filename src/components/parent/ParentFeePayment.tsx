@@ -430,7 +430,7 @@ export const ParentFeePayment: React.FC<ParentFeePaymentProps> = ({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '1.25rem' }}>
                   <div>
                     <div style={{ borderBottom: '1px solid #334155', width: '160px', height: '25px', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', fontFamily: 'cursive', fontSize: '1.1rem' }}>
-                      Rev. Livingstone
+                      Mr. Quaye
                     </div>
                     <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>
                       Authorized Bursar / Accounts

@@ -136,8 +136,8 @@ export const ProprietorDashboard: React.FC<ProprietorDashboardProps> = ({
           <h2 style={{ fontSize: '1.65rem', color: '#FFFFFF', fontWeight: 800, letterSpacing: '-0.01em', margin: 0 }}>
             School Overview
           </h2>
-          <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.85rem', marginTop: '0.25rem', maxWidth: '550px' }}>
-            Welcome to Livine International School Management Portal
+          <p style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.85rem', marginTop: '0.25rem', maxWidth: '550px' }}>
+            Proprietors: Mr. Philip Dorh & Mrs. Doris Dorh • Ashale Botwe Lakeside Campus
           </p>
         </div>
 
